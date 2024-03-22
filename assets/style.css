@@ -31,7 +31,7 @@
   }
 
 :root {
-    --font: rgba(0, 0, 0, 1);
+    --font: rgba(45, 45, 45, 1);
     --highlight: rgba(39, 94, 254, 1);
     --highlight-08: rgba(39, 94, 254, 0.8);
     --highlight-05: rgba(39, 94, 254, 0.5);
