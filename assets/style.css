@@ -44,7 +44,6 @@
 }
 
 body {
-    border-top: 1px solid var(--highlight);
     margin: 0;
     padding: 0;
     font-size: 1rem;
@@ -55,18 +54,16 @@ body {
 }
 
 #banner {
-    background: transparent url("../assets/img/banner.png") no-repeat fixed center;
+    background: transparent;
     background-size: cover;
-    height: 60vh;
     display: flex;
     flex-direction: column;
 }
 
 .banner-content {
-    color: var(--white);
     padding: 0 40px;
-    height: 40vh;
-    width: 60vw;
+    height: 30vh;
+    max-width: 90vw;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -74,7 +71,7 @@ body {
     align-self: center;
 }
 #banner h1 {
-   font-size: 38px;
+    font-size: max(48px, min(5vw, 76px));
 }
 
 header {
@@ -85,13 +82,13 @@ header {
 }
 
 header svg {
-    width: 260px;
-    height: 65px;
+    width: 208px;
+    height: 50px;
 }
 
 #ort-logo {
-    width: 180px;
-    height: 50px;
+    width: 144px;
+    height: 40px;
 }
 
 h1 {
@@ -142,7 +139,7 @@ a:hover, a:focus {
     position: relative;
     aspect-ratio: 800 / 600;
     overflow: hidden;
-    border-radius: 10px;
+    border-radius: 5px;
 }
 
 .thumb .filled {
@@ -154,7 +151,7 @@ a:hover, a:focus {
     background-repeat: no-repeat;
     background-position: 50% 50%;
     background-size: 140px;
-    border-radius: 10px;
+    border-radius: 5px;
 }
 
 .thumb:hover {
@@ -301,7 +298,7 @@ footer ul {
 }
 
 footer ul li {
-    padding: 0 12px;
+    padding: 0 8px;
     display: inline-block;
 }
 
