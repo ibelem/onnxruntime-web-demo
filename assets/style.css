@@ -71,7 +71,7 @@ body {
     align-self: center;
 }
 #banner h1 {
-    font-size: max(48px, min(5vw, 76px));
+    font-size: max(48px, min(5vw, 68px));
 }
 
 header {
@@ -102,10 +102,10 @@ h2.title {
 }
 
 .card_4 {
-	margin: 40px;
+	margin: 20px 40px 40px 40px;
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
-	grid-column-gap: 10px;
+	grid-column-gap: 2px;
 	grid-row-gap: 10px;
 	justify-content: center;
     justify-items: center;
@@ -114,7 +114,7 @@ h2.title {
 .g2 {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
-	grid-column-gap: 10px;
+	grid-column-gap: 2px;
 	grid-row-gap: 10px;
 	padding: 0 0;
 }
@@ -184,7 +184,7 @@ a:hover, a:focus {
 }
 
 .sample::after {
-    content: "View sample \2197";
+    content: "View Demo \2197";
     color: #fff;
     position: absolute;
     width: 100%;
