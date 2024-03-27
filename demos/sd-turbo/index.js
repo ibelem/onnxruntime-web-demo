@@ -18,7 +18,7 @@ function getConfig() {
         provider: "webnn",
         device: "gpu",
         threads: "1",
-        images: "2",
+        images: "4",
     };
     let vars = query.split("&");
     for (var i = 0; i < vars.length; i++) {

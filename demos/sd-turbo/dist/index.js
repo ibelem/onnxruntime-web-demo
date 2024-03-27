@@ -2327,11 +2327,11 @@ function log(i) { console.log(i); document.getElementById('status').innerText +=
 function getConfig() {
     const query = window.location.search.substring(1);
     var config = {
-        model: location.href.includes("github.io") ? "https://huggingface.co/lwanming/sd-turbo-ort-web/resolve/main" : "models",
+        model: location.href.includes("github.io") ? "https://huggingface.co/onnxruntime-web-temp/demo/sd-turbo/resolve/main" : "models",
         provider: "webnn",
         device: "gpu",
         threads: "1",
-        images: "2",
+        images: "4",
     };
     let vars = query.split("&");
     for (var i = 0; i < vars.length; i++) {
