@@ -77,7 +77,7 @@
 }
 
 body {
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: 'Archivo', "Segoe UI", SegoeUI, "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-weight: 400;
     margin: 0;
     padding: 0;
@@ -253,7 +253,7 @@ h1.title span {
     color: var(--font);
     background-color: var(--bg-2);
     border-radius: 5px;
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: 'Archivo', "Segoe UI", SegoeUI, "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 .input-group input:focus,  .input-group textarea:focus,
