@@ -14,7 +14,7 @@ function log(i) { console.log(i); document.getElementById('status').innerText +=
 function getConfig() {
     const query = window.location.search.substring(1);
     var config = {
-        model: location.href.includes("github.io") ? "https://huggingface.co/onnxruntime-web-temp/demo/resolve/main/sd-turbo/" : "models",
+        model: location.href.includes("github.io") ? "https://huggingface.co/onnxruntime-web-temp/demo/resolve/main/sd-turbo" : "models",
         provider: "webnn",
         device: "gpu",
         threads: "1",
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     || location.href.toLowerCase().indexOf('onnxruntime-web-demo') > -1) {
         path = 'onnxruntime-web-temp/demo/resolve/main/sd-turbo/tokenizer';        
     } else {
-        path = '../../demos/sd-turbo/models/tokenizer/'
+        path = '../../demos/sd-turbo/models/tokenizer'
     }
 
     tokenizer = await AutoTokenizer.from_pretrained(path);
