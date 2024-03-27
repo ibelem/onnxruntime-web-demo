@@ -2327,7 +2327,7 @@ function log(i) { console.log(i); document.getElementById('status').innerText +=
 function getConfig() {
     const query = window.location.search.substring(1);
     var config = {
-        model: location.href.includes("github.io") ? "https://huggingface.co/onnxruntime-web-temp/demo/sd-turbo/resolve/main" : "models",
+        model: location.href.includes("github.io") ? "https://huggingface.co/onnxruntime-web-temp/demo/resolve/main/sd-turbo/" : "models",
         provider: "webnn",
         device: "gpu",
         threads: "1",
