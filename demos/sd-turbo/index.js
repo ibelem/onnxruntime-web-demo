@@ -4,9 +4,10 @@
 // An example how to run sd-turbo with webgpu in onnxruntime-web.
 //
 
-import ort from 'onnxruntime-web/webgpu';
-
-function log(i) { console.log(i); document.getElementById('status').innerText += `\n${i}`; }
+function log(i) { 
+    console.log(i); 
+    document.getElementById('status').innerText += `\n[${getDateTime()}] ${i}`;
+}
 
 /*
  * get configuration from url
@@ -69,14 +70,14 @@ async function fetchAndCache(base_url, model_path) {
         if (cachedResponse == undefined) {
             await cache.add(url);
             cachedResponse = await cache.match(url);
-            log(`${model_path} (network)`);
+            log([Load] `${model_path} (network)`);
         } else {
-            log(`${model_path} (cached)`);
+            log(`[Load] ${model_path} (cached)`);
         }
         const data = await cachedResponse.arrayBuffer();
         return data;
     } catch (error) {
-        log(`${model_path} (network)`);
+        log(`[Load] ${model_path} (network)`);
         return await fetch(url).then(response => response.arrayBuffer());
     }
 }
@@ -85,7 +86,7 @@ async function fetchAndCache(base_url, model_path) {
  * load models used in the pipeline
  */
 async function load_models(models) {
-    log("Execution provider: " + config.provider);
+    log("[Load] Execution provider: " + config.provider);
     const cache = await caches.open("onnx");
     let missing = 0;
     for (const [name, model] of Object.entries(models)) {
@@ -96,23 +97,28 @@ async function load_models(models) {
         }
     }
     if (missing > 0) {
-        log(`downloading ${missing} MB from network ... it might take a while`);
+        log(`[Load] Downloading ${missing}MB from network ...`);
     } else {
-        log("loading...");
+        log("[Load] Loading models");
     }
     for (const [name, model] of Object.entries(models)) {
         try {
-            const start = performance.now();
+            let start = performance.now();
             const model_bytes = await fetchAndCache(config.model, model.url);
+            let stop = performance.now();
+            log(`[Load] ${model.url} completed · ${(stop - start).toFixed(1)}ms`);
+
+            start = performance.now();
             const sess_opt = { ...opt, ...model.opt };
             models[name].sess = await ort.InferenceSession.create(model_bytes, sess_opt);
-            const stop = performance.now();
-            log(`${model.url} in ${(stop - start).toFixed(1)}ms`);
+            stop = performance.now();
+            log(`[Session Create] ${model.url} completed · ${(stop - start).toFixed(1)}ms`);
+
         } catch (e) {
-            log(`${model.url} failed, ${e}`);
+            log(`[Load] ${model.url} failed, ${e}`);
         }
     }
-    log("ready.");
+    log("[Load] Ready to generate images");
 }
 
 const config = getConfig();
@@ -138,18 +144,28 @@ const models = {
     }
 }
 
-ort.env.wasm.wasmPaths = 'dist/';
-ort.env.wasm.numThreads = 1;
-ort.env.wasm.simd = true;
+const data = document.querySelector('#data');
+const textEncoderLoad = document.querySelector('#textencoderload');
+const textEncoderFetch = document.querySelector('#textencoderfetch');
+const textEncoderCreate = document.querySelector('#textencodercreate');
+const textEncoderRun = document.querySelector('#textencoderrun');
+const unetLoad = document.querySelector('#unetload');
+const unetFetch = document.querySelector('#unetfetch');
+const unetCreate = document.querySelector('#unetcreate');
+const unetRun = document.querySelector('#unetrun');
+const vaeDecoderLoad = document.querySelector('#vaedecoderload');
+const vaeDecoderFetch = document.querySelector('#vaedecoderfetch');
+const vaeDecoderCreate = document.querySelector('#vaedecodercreate');
+const vaeDecoderRun = document.querySelector('#vaedecoderrun');
+const totalLoad = document.querySelector('#totalload');
+const totalRun = document.querySelector('#totalrun');
+let inferenceProgress = 0;
 
 let tokenizer;
 let loading;
 const sigma = 14.6146;
 const gamma = 0;
 const vae_scaling_factor = 0.18215;
-const text = document.getElementById("user-input");
-
-text.value = "Paris with the river in the background";
 
 const opt = {
     executionProviders: [config.provider],
@@ -164,35 +180,6 @@ const opt = {
         }
     },
 };
-
-switch (config.provider) {
-    case "webgpu":
-        if (!("gpu" in navigator)) {
-            throw new Error("webgpu is NOT supported");
-        }
-        opt.preferredOutputLocation = { last_hidden_state: "gpu-buffer" };
-        break;
-    case "webnn":
-        if (!("ml" in navigator)) {
-            throw new Error("webnn is NOT supported");
-        }
-        opt.executionProviders = [{
-            name: "webnn",
-            deviceType: config.device,
-            powerPreference: 'default'
-        }];
-        break;
-}
-
-// Event listener for Ctrl + Enter or CMD + Enter
-document.getElementById('user-input').addEventListener('keydown', function (e) {
-    if (e.ctrlKey && e.key === 'Enter') {
-        generate_image();
-    }
-});
-document.getElementById('send-button').addEventListener('click', function (e) {
-    generate_image()
-});
 
 /*
  * scale the latents
@@ -251,24 +238,9 @@ function draw_image(t, image_nr) {
     div.style.opacity = 1.
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-    let path = '';
-    if (location.href.toLowerCase().indexOf('github.io') > -1 
-    || location.href.toLowerCase().indexOf('huggingface.co') > -1
-    || location.href.toLowerCase().indexOf('vercel.app') > -1
-    || location.href.toLowerCase().indexOf('onnxruntime-web-demo') > -1) {
-        path = 'onnxruntime-web-temp/demo/resolve/main/sd-turbo/tokenizer';        
-    } else {
-        path = '../../demos/sd-turbo/models/tokenizer'
-    }
-
-    tokenizer = await AutoTokenizer.from_pretrained(path);
-    tokenizer.pad_token_id = 0;
-});
-
 async function generate_image() {
     try {
-        document.getElementById('status').innerText = "generating ...";
+        log(`[Info] Generating ...`);
 
         let canvases = [];
         await loading;
@@ -278,14 +250,15 @@ async function generate_image() {
             div.style.opacity = 0.5
         }
 
-        const { input_ids } = await tokenizer(text.value, { padding: true, max_length: 77, truncation: true, return_tensor: false });
+        const prompt = document.querySelector("#user-input");
+        const { input_ids } = await tokenizer(prompt.value, { padding: true, max_length: 77, truncation: true, return_tensor: false });
 
         // text-encoder
         let start = performance.now();
         const { last_hidden_state } = await models.text_encoder.sess.run(
             { "input_ids": new ort.Tensor("int32", input_ids, [1, input_ids.length]) });
 
-        let perf_info = [`text_encoder: ${(performance.now() - start).toFixed(1)}ms`];
+        log(`[Session Run] Text Encoder: ${(performance.now() - start).toFixed(1)}ms`);
 
         for (let j = 0; j < config.images; j++) {
             const latent_shape = [1, 4, 64, 64];
@@ -300,7 +273,8 @@ async function generate_image() {
                 "encoder_hidden_states": last_hidden_state,
             };
             let { out_sample } = await models.unet.sess.run(feed);
-            perf_info.push(`unet: ${(performance.now() - start).toFixed(1)}ms`);
+            
+            let unetLog = `[Session Run][Image ${j+1}] UNet: ${(performance.now() - start).toFixed(1)}ms`;
 
             // scheduler
             const new_latents = step(new ort.Tensor("float32", convertToFloat32Array(out_sample.data), out_sample.dims), latent);
@@ -308,19 +282,18 @@ async function generate_image() {
             // vae_decoder
             start = performance.now();
             const { sample } = await models.vae_decoder.sess.run({ "latent_sample": new_latents });
-            perf_info.push(`vae_decoder: ${(performance.now() - start).toFixed(1)}ms`);
+            let vaeLog = `VAE Decoder: ${(performance.now() - start).toFixed(1)}ms`;
+            log(`${unetLog} ${vaeLog}`);
+
             draw_image(sample, j);
-            log(perf_info.join(", "))
-            perf_info = [];
         }
         // this is a gpu-buffer we own, so we need to dispose it
         last_hidden_state.dispose();
-        log("done");
+        log("[Info] Images generation completed");
     } catch (e) {
-        log(e);
+        log('[Error] ' + e);
     }
 }
-
 
 async function hasFp16() {
     try {
@@ -330,16 +303,6 @@ async function hasFp16() {
         return false
     }
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-    hasFp16().then((fp16) => {
-        if (fp16) {
-            loading = load_models(models);
-        } else {
-            log("Your GPU or Browser doesn't support webgpu/f16");
-        }
-    });
-});
 
 // ref: http://stackoverflow.com/questions/32633585/how-do-you-convert-to-half-floats-in-javascript
 const toHalf = (function () {
@@ -396,7 +359,7 @@ const toHalf = (function () {
 // Adapted from: https://gist.github.com/martinkallman/5049614
 // input is a Uint16 (eg, new Uint16Array([value])[0])
 
-export function float16ToNumber(input) {
+function float16ToNumber(input) {
     // Create a 32 bit DataView to store the input
     const arr = new ArrayBuffer(4);
     const dv = new DataView(arr);
@@ -439,7 +402,7 @@ export function float16ToNumber(input) {
 }
 
 // convert Uint16Array to Float32Array
-export function convertToFloat32Array(fp16_array) {
+function convertToFloat32Array(fp16_array) {
     const fp32_array = new Float32Array(fp16_array.length);
     for (let i = 0; i < fp32_array.length; i++) {
         fp32_array[i] = float16ToNumber(fp16_array[i]);
@@ -448,10 +411,201 @@ export function convertToFloat32Array(fp16_array) {
 }
 
 // convert Float32Array to Uint16Array
-export function convertToUint16Array(fp32_array) {
+function convertToUint16Array(fp32_array) {
     const fp16_array = new Uint16Array(fp32_array.length);
     for (let i = 0; i < fp16_array.length; i++) {
         fp16_array[i] = toHalf(fp32_array[i]);
     }
     return fp16_array;
 }
+
+const padNumber = (num, fill) => {
+    let len = ('' + num).length;
+    return Array(fill > len ? fill - len + 1 || 0 : 0).join(0) + num;
+};
+
+const getDateTime = () => {
+    let date = new Date(),
+        m = padNumber(date.getMonth() + 1, 2),
+        d = padNumber(date.getDate(), 2),
+        hour = padNumber(date.getHours(), 2),
+        min = padNumber(date.getMinutes(), 2),
+        sec = padNumber(date.getSeconds(), 2);
+    return `${m}/${d} ${hour}:${min}:${sec}`;
+};
+
+const getOrtDevVersion = async () => {
+    const response = await fetch('https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/');
+    const htmlString = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+    let selectElement = doc.querySelector('.path li');
+    selectElement = doc.querySelector('select.versions.select-css');
+    const options = Array.from(selectElement.querySelectorAll('option')).map(
+        (option) => option.value
+    );
+    return options[0].replace('onnxruntime-web@', '');
+};
+
+const checkWebNN = async () => {
+    let status = document.querySelector('#webnnstatus');
+    let info = document.querySelector('#info');
+    let webnnStatus = await webNnStatus();
+
+    if (webnnStatus.webnn) {
+        status.setAttribute('class', 'green');
+        info.innerHTML = 'WebNN supported';
+    } else {
+        if (webnnStatus.error) {
+            status.setAttribute('class', 'red');
+            info.innerHTML = 'WebNN not supported: ' + webnnStatus.error;
+        } else {
+            status.setAttribute('class', 'red');
+            info.innerHTML = 'WebNN not supported';
+        }
+    }
+
+    if (getQueryValue('provider') && getQueryValue('provider').toLowerCase().indexOf('webgpu') > -1) {
+        status.innerHTML = '';
+    }
+};
+
+const webNnStatus = async () => {
+    let result = {};
+    try {
+        const context = await navigator.ml.createContext();
+        if (context) {
+            try {
+                const builder = new MLGraphBuilder(context);
+                if (builder) {
+                    result.webnn = true;
+                    return result;
+                } else {
+                    result.webnn = false;
+                    return result;
+                }
+            } catch (e) {
+                result.webnn = false;
+                result.error = e.message;
+                return result;
+            }
+        } else {
+            result.webnn = false;
+            return result;
+        }
+    } catch (ex) {
+        result.webnn = false;
+        result.error = ex.message;
+        return result;
+    }
+};
+
+const setupORT = async () => {
+    const ortversion = document.querySelector('#ortversion');
+    removeElement('onnxruntime-web');
+    let ortVersion = await getOrtDevVersion();
+    let ortLink = '';
+    if (ortVersion && ortVersion.length > 4) {
+        await loadScript('onnxruntime-web', `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ortVersion}/dist/ort.all.min.js`);
+        ortLink = `https://www.npmjs.com/package/onnxruntime-web/v/${ortVersion}`
+        ortversion.innerHTML = `ONNX Runtime Web: <a href="${ortLink}">${ortVersion}</a><br/>[To do: Use WebNN EP of ORT Web 1.18 release version]`;
+    } else {
+        await loadScript('onnxruntime-web', './dist/ort.all.min.js');
+        ortversion.innerHTML = `ONNX Runtime Web: Internal version`;
+    }
+}
+
+const loadScript = async (id, url) => {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.onload = resolve;
+        script.onerror = reject;
+        script.id = id;
+        script.src = url;
+        if (url.startsWith('http')) {
+            script.crossOrigin = 'anonymous';
+        }
+        document.body.append(script);
+    })
+}
+
+const removeElement = async (id) => {
+    let el = document.querySelector(id);
+    if (el) {
+        el.parentNode.removeChild(el);
+    }
+}
+
+const getQueryValue = (name) => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+const ui = async () => {
+    await setupORT();
+
+    const title = document.querySelector('#title');
+    if (getQueryValue('provider') && getQueryValue('provider').toLowerCase().indexOf('webgpu') > -1) {
+        title.innerHTML = 'WebGPU';
+    }
+    await checkWebNN();
+
+    switch (config.provider) {
+        case "webgpu":
+            if (!("gpu" in navigator)) {
+                throw new Error("webgpu is NOT supported");
+            }
+            opt.preferredOutputLocation = { last_hidden_state: "gpu-buffer" };
+            break;
+        case "webnn":
+            let webnnStatus = await webNnStatus();
+            if (webnnStatus.webnn) {
+                opt.executionProviders = [{
+                    name: "webnn",
+                    deviceType: config.device,
+                    powerPreference: 'default'
+                }];
+            }
+            break;
+    }
+    
+    const prompt = document.querySelector("#user-input");
+    const generate = document.querySelector("#generate");
+    prompt.value = "Paris with the river in the background";
+    // Event listener for Ctrl + Enter or CMD + Enter
+    prompt.addEventListener('keydown', function (e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            generate_image();
+        }
+    });
+    generate.addEventListener('click', function (e) {
+        generate_image()
+    });
+
+    // ort.env.wasm.wasmPaths = 'dist/';
+    ort.env.wasm.numThreads = 1;
+    ort.env.wasm.simd = true;
+
+    let path = '';
+    if (location.href.toLowerCase().indexOf('github.io') > -1 
+    || location.href.toLowerCase().indexOf('huggingface.co') > -1
+    || location.href.toLowerCase().indexOf('vercel.app') > -1
+    || location.href.toLowerCase().indexOf('onnxruntime-web-demo') > -1) {
+        path = 'onnxruntime-web-temp/demo/resolve/main/sd-turbo/tokenizer';        
+    } else {
+        path = '../../demos/sd-turbo/models/tokenizer'
+    }
+
+    tokenizer = await AutoTokenizer.from_pretrained(path);
+    tokenizer.pad_token_id = 0;
+
+    hasFp16().then((fp16) => {
+        if (fp16) {
+            loading = load_models(models);
+        } else {
+            log(`[Error] Your GPU or Browser doesn't support webgpu/f16`);
+        }
+    });
+};
+
+document.addEventListener('DOMContentLoaded', ui, false);

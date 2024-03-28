@@ -270,8 +270,8 @@ h1.title span {
     background-color: transparent;
     width: 80%;
     font-family: 'Archivo', "Segoe UI", SegoeUI, "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-size: 1.2rem;
-    padding: 8px 24px;
+    font-size: 1rem;
+    padding: 4px 24px;
     resize: vertical;
     line-height: 1rem;
 }
@@ -288,8 +288,8 @@ h1.title span {
 }
 
 #image_area {
-    margin: 0px auto;
-    min-height: 55vh;
+    margin: 20px auto;
+    min-height: 50vh;
 }
  
 .mt-1 {
@@ -487,67 +487,43 @@ h1.title span {
     grid-column-gap: 0px;
     grid-row-gap: 0px;
     align-items: center;
+    gap: 10px;
 }
 
 .grid-4 div {
     justify-self: center;
 }
 
-.grid-4 canvas {
+.grid-4 .frame {
     box-shadow: inset 0 0 1px 0 rgba(0,0,0,.2);
     height: 100%;
     width: 100%;
+    border-radius: 5px;
+    display: grid;
+    align-items: center;
+    justify-items: center;
 }
 
-.grid-4 .frame_border:hover {
-    box-shadow: 0 3px 15px -1px var(--main-05);
+.grid-4 .frame:hover {
+    border: 1px solid var(--border);
 }
 
-.grid-4 .frame_border {
-    box-sizing: border-box;
-    position: relative;
-    background: black;
-    background-image: linear-gradient(to top right, #5D5D5B, #383838);
-    padding: 7px;
-    width: 22vw;
-    max-height: 46vh;
-    box-shadow:
-      -1px 1px var(--blur) 1px rgba(0,0,0,0.10),
-      -2px 2px var(--blur) 1px rgba(0,0,0,0.09),
-      -3px 3px var(--blur) 1px rgba(0,0,0,0.08),
-      -4px 4px var(--blur) 1px rgba(0,0,0,0.07),
-      -5px 5px var(--blur) 1px rgba(0,0,0,0.06),
-      -6px 6px var(--blur) 1px rgba(0,0,0,0.05),
-      -7px 7px var(--blur) 1px rgba(0,0,0,0.04),
-      -8px 8px var(--blur) 1px rgba(0,0,0,0.03),
-      -9px 9px var(--blur) 1px rgba(0,0,0,0.03),
-      -10px 10px var(--blur) 1px rgba(0,0,0,0.03),
-      -11px 11px var(--blur) 1px rgba(0,0,0,0.03),
-      -12px 12px var(--blur) 1px rgba(0,0,0,0.02),
-      -13px 13px var(--blur) 1px rgba(0,0,0,0.02),
-      -14px 14px var(--blur) 1px rgba(0,0,0,0.01),
-      -15px 15px var(--blur) 1px rgba(0,0,0,0.01),
-      -16px 16px var(--blur) 1px rgba(0,0,0,0.01)
-    ;
-    &:before{
-      content: ' ';
-      display: block;
-      padding-bottom: 140%;
-    }
+.grid-4 .frame svg {
+    width: 60px;
+    height: 60px;
+}
+
+.grid-4 canvas {
+    max-width: 100%;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 
-.grid-4 .frame {
-    left: 3%;
-  top: 2.5%;
-  box-shadow: inset -1px 1px 6px 1px rgba(0,0,0,.24);
-  width: 94%;
-  height: 95%;
-  background: white;
-  align-items: center;
-  display: flex;
-  padding: 18px;
-  box-sizing: border-box;
-  position: absolute;
+.inferncing svg {
+    animation: spin 2s linear infinite;
 }
 
 .grid-4-41 {

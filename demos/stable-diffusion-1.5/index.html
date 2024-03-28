@@ -340,7 +340,7 @@
         if (ortVersion && ortVersion.length > 4) {
             await Utils.loadScript('onnxruntime-web', `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ortVersion}/dist/ort.all.min.js`);
             ortLink = `https://www.npmjs.com/package/onnxruntime-web/v/${ortVersion}`
-            ortversion.innerHTML = `ONNX Runtime Web: <a href="${ortLink}">${ortVersion}</a>`;
+            ortversion.innerHTML = `ONNX Runtime Web: <a href="${ortLink}">${ortVersion}</a><br/>[To do: Use WebNN EP of ORT Web 1.18 release version]`;
         } else {
             await Utils.loadScript('onnxruntime-web', './dist/ort.all.min.js');
             ortversion.innerHTML = `ONNX Runtime Web: Internal version`;
@@ -751,7 +751,7 @@
             Utils.log(`[Load] Text Encoder loaded · ${(fetchTime / 1000).toFixed(2)}s`);
 
             progressBarLabel.textContent = 'Creating session for Text Encoder · 10%';
-            Utils.log('[Session Create] Beginning Text encode');
+            Utils.log('[Session Create] Beginning text encode');
         } else if (modelName == 'stable-diffusion-unet') {
             performanceData.modelfetch.unet = fetchTime;
             progressBarLabel.textContent = `Loaded UNet · ${(fetchTime / 1000).toFixed(2)}s · 90%`;
@@ -775,7 +775,7 @@
             let textencoderCreateTime = (performance.now() - createStartTime).toFixed(2);
             performanceData.sessioncreate.textencoder = textencoderCreateTime;
             progressBarLabel.textContent = `Text Encoder session created · ${textencoderCreateTime}ms · 10%`
-            Utils.log(`[Session Create] Text Encoder Completed · ${textencoderCreateTime}ms`);
+            Utils.log(`[Session Create] Text Encoder completed · ${textencoderCreateTime}ms`);
         } else if (modelName == 'stable-diffusion-unet') {
             let unetCreateTime = (performance.now() - createStartTime).toFixed(2);
             performanceData.sessioncreate.unet = unetCreateTime;
@@ -785,7 +785,7 @@
             let vaedecoderCreateTime = (performance.now() - createStartTime).toFixed(2);
             performanceData.sessioncreate.vaedecoder = vaedecoderCreateTime;
             progressBarLabel.textContent = `VAE Decoder session created · ${vaedecoderCreateTime}ms · 95%`
-            Utils.log(`[Session Create] VAE Decoder Completed · ${vaedecoderCreateTime}ms`);
+            Utils.log(`[Session Create] VAE Decoder completed · ${vaedecoderCreateTime}ms`);
         }
         return modelSession;
     }
