@@ -1043,7 +1043,7 @@
     // - unetInputs
     // - vaeDecoderInputs
     {
-        Utils.log('[Session Run] Beginning Text encode');
+        Utils.log('[Session Run] Beginning text encode');
         let token_ids = await getTextTokens();
         const startTextEncoder = performance.now();
         const textEncoderInputs = {
@@ -1053,7 +1053,7 @@
 
         let textEncoderExecutionTime = (performance.now() - startTextEncoder).toFixed(2);
         performanceData.sessionrun.textencoder = textEncoderExecutionTime;
-        Utils.log(`[Session Run] Text Encode execution time: ${textEncoderExecutionTime}ms`);
+        Utils.log(`[Session Run] Text encode execution time: ${textEncoderExecutionTime}ms`);
 
         inferenceProgress += 1;
         progressBarInnerInference.style.width = inferenceProgress + "%";

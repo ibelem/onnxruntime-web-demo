@@ -164,7 +164,7 @@
     <div class="v9">
         <div id="image_area" class="grid-4">
 
-            <div id="img_div_0" class="frame placeholder inferncing done">
+            <div id="img_div_0" class="frame">
                 <svg width="597" height="593" viewBox="0 0 597 593" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M437.115 142.476L301.328 294.228V6.70117L437.115 142.476Z" fill="white" />
                     <path d="M437.115 142.475L349.555 239.353L301.328 142.475" fill="#D1D1D1" />
@@ -297,9 +297,15 @@
             </div>
 
         </div>
+        <div id="data_area" class="grid-4">
+            <div id="data1"></div>
+            <div id="data2"></div>
+            <div id="data3"></div>
+            <div id="data4"></div>
+        </div>
         <div class="button-group key">
             <textarea class="form-control" id="user-input" placeholder="Enter your prompt"></textarea>
-            <button id="generate" class="button">
+            <button id="generate" class="button" disabled>
                 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 256 256">
                     <path fill="#ffffff"
                         d="m197.58 129.06l-51.61-19l-19-51.65a15.92 15.92 0 0 0-29.88 0L78.07 110l-51.65 19a15.92 15.92 0 0 0 0 29.88L78 178l19 51.62a15.92 15.92 0 0 0 29.88 0l19-51.61l51.65-19a15.92 15.92 0 0 0 0-29.88ZM140.39 163a15.87 15.87 0 0 0-9.43 9.43l-19 51.46L93 172.39a15.87 15.87 0 0 0-9.39-9.39l-51.46-19l51.46-19a15.87 15.87 0 0 0 9.39-9.39l19-51.46l19 51.46a15.87 15.87 0 0 0 9.43 9.43l51.46 19ZM144 40a8 8 0 0 1 8-8h16V16a8 8 0 0 1 16 0v16h16a8 8 0 0 1 0 16h-16v16a8 8 0 0 1-16 0V48h-16a8 8 0 0 1-8-8m104 48a8 8 0 0 1-8 8h-8v8a8 8 0 0 1-16 0v-8h-8a8 8 0 0 1 0-16h8v-8a8 8 0 0 1 16 0v8h8a8 8 0 0 1 8 8" />
@@ -312,44 +318,68 @@
                 <div id="webnnstatus"><span id="circle"></span> <span id="info">WebNN</span></div>
                 <div id="ortversion"></div>
             </div>
-            <div id="data" class="hide">
+            <div id="data" class="">
                 <table>
                     <tr>
-                        <th class="category"></th>
-                        <th class="load">Load</th>
-                        <th class="load">Model Fetch</th>
-                        <th class="load">Session Create</th>
-                        <th class="run">Execution (incl. Session Run)</th>
+                        <th rowspan=3 id="tdTurbo">SD Turbo<br/>(ms)</th>
+                        <th colspan=2>Load</th>
+                        <th colspan=8>Execution</th>
                     </tr>
-                    <tr id="textencoder">
-                        <td title="235MB">Text Encoder</td>
-                        <td id="textencoderload"></td>
-                        <td id="textencoderfetch" title="235MB"></td>
-                        <td id="textencodercreate"></td>
-                        <td id="textencoderrun"></td>
+                    <tr>
+                        <td rowspan=2 id="fetch">Fetch</td>
+                        <td rowspan=2>Sess Create</td>
+                        <td colspan=2>Image
+                            1</td>
+                        <td colspan=2>Image
+                            2</td>
+                        <td colspan=2>Image
+                            3</td>
+                        <td colspan=2>Image
+                            4</td>
                     </tr>
-                    <tr id="unet">
-                        <td title="1.60GB">UNet</td>
-                        <td id="unetload"></td>
-                        <td id="unetfetch" title="1.60GB"></td>
-                        <td id="unetcreate"></td>
-                        <td id="unetrun"></td>
-                    </tr>
-                    <tr id="vaedecoder">
-                        <td title="94.5MB">VAE Decoder</td>
-                        <td id="vaedecoderload"></td>
-                        <td id="vaedecoderfetch" title="94.5MB"></td>
-                        <td id="vaedecodercreate"></td>
-                        <td id="vaedecoderrun"></td>
-                    </tr>
-                    <tr id="total">
+                    <tr>
+                        <td>Sess Run</td>
                         <td>Total</td>
-                        <td id="totalload"></td>
-                        <td id="totalfetch">-</td>
-                        <td id="totalcreate">-</td>
-                        <td id="totalrun"></td>
+                        <td>Sess Run</td>
+                        <td>Total</td>
+                        <td>Sess Run</td>
+                        <td>Total</td>
+                        <td>Sess Run</td>
+                        <td>Total</td>
+                    </tr>
+                    <tr>
+                        <td id="textEncoder">Text Encoder</td>
+                        <td id="textEncoderFetch">&nbsp;</td>
+                        <td id="textEncoderCreate">&nbsp;</td>
+                        <td id="textEncoderRun1">&nbsp;</td>
+                        <td id="runTotal1" rowspan=3>&nbsp;</td>
+                        <td id="textEncoderRun2">&nbsp;</td>
+                        <td id="runTotal2" rowspan=3>&nbsp;</td>
+                        <td id="textEncoderRun3">&nbsp;</td>
+                        <td id="runTotal3" rowspan=3>&nbsp;</td>
+                        <td id="textEncoderRun4">&nbsp;</td>
+                        <td id="runTotal4" rowspan=3>&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td id="unet">UNet</td>
+                        <td id="unetFetch">&nbsp;</td>
+                        <td id="unetCreate">&nbsp;</td>
+                        <td id="unetRun1">&nbsp;</td>
+                        <td id="unetRun2">&nbsp;</td>
+                        <td id="unetRun3">&nbsp;</td>
+                        <td id="unetRun4">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td id="vae">VAE</td>
+                        <td id="vaeFetch">&nbsp;</td>
+                        <td id="vaeCreate">&nbsp;</td>
+                        <td id="vaeRun1">&nbsp;</td>
+                        <td id="vaeRun2">&nbsp;</td>
+                        <td id="vaeRun3">&nbsp;</td>
+                        <td id="vaeRun4">&nbsp;</td>
                     </tr>
                 </table>
+                <div>Total Execution Time = Session Run Time (Text Encoder + UNet + VAE Decoder) + Image Drawing Time</div>
             </div>
         </div>
     </div>

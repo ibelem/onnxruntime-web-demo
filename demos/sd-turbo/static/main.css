@@ -288,12 +288,34 @@ h1.title span {
 }
 
 #image_area {
-    margin: 20px auto;
-    min-height: 50vh;
+    margin: 20px auto 10px auto;
+    min-height: 40vh;
+}
+
+#data_area {
+    margin-bottom: 20px;
+    font-size: 2rem;
+    font-weight: 600;
+    height: 40px;
+}
+
+#data_area div {
+    padding: 4px 18px;
+    background-color: var(--yellow);
+    color: var(--bg);
+    transform: skew(-15deg);
+    text-shadow: rgba(0,0,0,.2) 1px 1px 1px;
+}
+
+#data_area div:hover {
+    background-color: var(--main-darker);
+    color: var(--bg);
+    transform: skew(-15deg);
+    box-shadow: 0 3px 15px -1px var(--main-darker);
 }
  
 .mt-1 {
-    margin-top: 20px;
+    margin-top: 16px;
 }
 
 .options {
@@ -502,10 +524,42 @@ h1.title span {
     display: grid;
     align-items: center;
     justify-items: center;
+    background-color: var(--bg-2);
 }
 
 .grid-4 .frame:hover {
     border: 1px solid var(--border);
+    background-color: var(--bg);
+}
+
+.frame canvas {
+    display: none;
+}
+
+.frame.placeholder canvas {
+    display: none;
+}
+
+.frame.inferencing canvas {
+    display: none;
+}
+
+.frame.done canvas {
+    display: inline-block;
+    border-radius: 5px;
+    box-shadow: inset 0 0 1px 0 rgba(0,0,0,.2);
+}
+
+.frame.placeholder svg {
+    display: inline-block;
+}
+
+.frame.inferencing svg {
+    display: inline-block;
+}
+
+.frame.done svg {
+    display: none;
 }
 
 .grid-4 .frame svg {
@@ -636,30 +690,52 @@ h1.title span {
 }
 
 #data {
-    border: 1px solid var(--border);
-    margin-top: 10px;
-    border-radius: 5px;
-}
-
-#data:hover {
-    border: 1px solid var(--main);
-    color: var(--bg);
-}
-
-#data table {
+    align-self: flex-start;
     font-size: 0.9rem;
+}
+
+#data tr:first-child th:first-child {
+    border-top-left-radius: 5px;
+}
+
+#data tr:first-child th:last-child {
+    border-top-right-radius: 5px;
+}
+
+#data tr:last-child td:first-child {
+    border-bottom-left-radius: 5px;
+}
+
+#data #textEncoderRunTotal4 {
+    border-bottom-right-radius: 5px;
+}
+ 
+#data table {
     text-align: center;
     margin: 0;
-    border-collapse: collapse;
+    border-spacing: 0;
+    font-size: 0.9rem;
+}
+
+#data div {
+    margin-top: 10px;
+    text-align: right;
+}
+
+#tdTurbo, #textEncoder, #unet, #vae {
+    border-left: 1px solid var(--border);
 }
 
 #data tr th, #data tr td {
     text-align: center;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
 }
 
 #data tr th {
     font-weight: 600;
-    padding: 6px 8px;
+    padding: 4px 8px;
+    border-top: 1px solid var(--border);
 }
 
 #data tr td {
@@ -674,17 +750,9 @@ h1.title span {
   background-color: var(--bg);
 }
 
-#data tr:hover th, #data tr:hover td {
+#data tr:hover th:hover, #data tr td:hover  {
     background-color: var(--main-dark);
     color: var(--bg);
-}
-
-#data .category, #data .load {
-    width: 118px;
-}
-
-#data .run {
-    width: calc(50vw - 512px);
 }
 
 #totalrun {

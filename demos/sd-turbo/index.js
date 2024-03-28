@@ -105,20 +105,38 @@ async function load_models(models) {
         try {
             let start = performance.now();
             const model_bytes = await fetchAndCache(config.model, model.url);
-            let stop = performance.now();
-            log(`[Load] ${model.url} completed · ${(stop - start).toFixed(1)}ms`);
+            let modelFetchTime = (performance.now() - start).toFixed(2);
+            if (name == 'text_encoder') {
+                textEncoderFetch.innerHTML = modelFetchTime;
+            } else if (name == 'unet') {
+                unetFetch.innerHTML = modelFetchTime;
+            } else if(name == 'vae_decoder') {
+                vaeFetch.innerHTML = modelFetchTime;
+            }
+            log(`[Load] ${model.url} completed · ${modelFetchTime}ms`);
+            log(`[Session Create] Beginning ${model.url}`);
 
             start = performance.now();
             const sess_opt = { ...opt, ...model.opt };
             models[name].sess = await ort.InferenceSession.create(model_bytes, sess_opt);
-            stop = performance.now();
-            log(`[Session Create] ${model.url} completed · ${(stop - start).toFixed(1)}ms`);
+            let createTime = (performance.now() - start).toFixed(2);
+
+            if (name == 'text_encoder') {
+                textEncoderCreate.innerHTML = createTime;
+            } else if (name == 'unet') {
+                unetCreate.innerHTML = createTime;
+            } else if(name == 'vae_decoder') {
+                vaeCreate.innerHTML = createTime;
+            }
+
+            log(`[Session Create] ${model.url} completed · ${createTime}ms`);
 
         } catch (e) {
             log(`[Load] ${model.url} failed, ${e}`);
         }
     }
     log("[Load] Ready to generate images");
+    generate.disabled = false;
 }
 
 const config = getConfig();
@@ -144,21 +162,6 @@ const models = {
     }
 }
 
-const data = document.querySelector('#data');
-const textEncoderLoad = document.querySelector('#textencoderload');
-const textEncoderFetch = document.querySelector('#textencoderfetch');
-const textEncoderCreate = document.querySelector('#textencodercreate');
-const textEncoderRun = document.querySelector('#textencoderrun');
-const unetLoad = document.querySelector('#unetload');
-const unetFetch = document.querySelector('#unetfetch');
-const unetCreate = document.querySelector('#unetcreate');
-const unetRun = document.querySelector('#unetrun');
-const vaeDecoderLoad = document.querySelector('#vaedecoderload');
-const vaeDecoderFetch = document.querySelector('#vaedecoderfetch');
-const vaeDecoderCreate = document.querySelector('#vaedecodercreate');
-const vaeDecoderRun = document.querySelector('#vaedecoderrun');
-const totalLoad = document.querySelector('#totalload');
-const totalRun = document.querySelector('#totalrun');
 let inferenceProgress = 0;
 
 let tokenizer;
@@ -240,7 +243,7 @@ function draw_image(t, image_nr) {
 
 async function generate_image() {
     try {
-        log(`[Info] Generating ...`);
+        log(`[Session Run] Beginning`);
 
         let canvases = [];
         await loading;
@@ -257,10 +260,16 @@ async function generate_image() {
         let start = performance.now();
         const { last_hidden_state } = await models.text_encoder.sess.run(
             { "input_ids": new ort.Tensor("int32", input_ids, [1, input_ids.length]) });
-
-        log(`[Session Run] Text Encoder: ${(performance.now() - start).toFixed(1)}ms`);
+        let sessionRunTimeTextEncode = (performance.now() - start).toFixed(2);
+        textEncoderRun1.innerHTML = sessionRunTimeTextEncode;
+        textEncoderRun2.innerHTML = sessionRunTimeTextEncode;
+        textEncoderRun3.innerHTML = sessionRunTimeTextEncode;
+        textEncoderRun4.innerHTML = sessionRunTimeTextEncode;
+        log(`[Session Run] Text encode execution time: ${sessionRunTimeTextEncode}ms`);
 
         for (let j = 0; j < config.images; j++) {
+            document.getElementById(`img_div_${j}`).setAttribute('class','frame inferncing');
+            let startTotal = performance.now();
             const latent_shape = [1, 4, 64, 64];
             let latent = new ort.Tensor(randn_latents(latent_shape, sigma), latent_shape);
             const latent_model_input = scale_model_inputs(latent);
@@ -273,8 +282,9 @@ async function generate_image() {
                 "encoder_hidden_states": last_hidden_state,
             };
             let { out_sample } = await models.unet.sess.run(feed);
-            
-            let unetLog = `[Session Run][Image ${j+1}] UNet: ${(performance.now() - start).toFixed(1)}ms`;
+            let unetRunTime = (performance.now() - start).toFixed(2);
+            document.getElementById(`unetRun${j+1}`).innerHTML = unetRunTime;
+            log(`[Session Run][Image ${j+1}] UNet execution time: ${unetRunTime}ms`);
 
             // scheduler
             const new_latents = step(new ort.Tensor("float32", convertToFloat32Array(out_sample.data), out_sample.dims), latent);
@@ -282,10 +292,15 @@ async function generate_image() {
             // vae_decoder
             start = performance.now();
             const { sample } = await models.vae_decoder.sess.run({ "latent_sample": new_latents });
-            let vaeLog = `VAE Decoder: ${(performance.now() - start).toFixed(1)}ms`;
-            log(`${unetLog} ${vaeLog}`);
-
+            let vaeRunTime = (performance.now() - start).toFixed(2);
+            document.getElementById(`vaeRun${j+1}`).innerHTML = vaeRunTime;
+            log(`[Session Run][Image ${j+1}] VAE decode execution time: ${vaeRunTime}ms`);
+            document.getElementById(`img_div_${j}`).setAttribute('class','frame done');
             draw_image(sample, j);
+            let totalRunTime = (performance.now() + Number(sessionRunTimeTextEncode) - startTotal ).toFixed(2);
+            log(`[Total] Image ${j+1} execution time: ${totalRunTime}ms`);
+            document.getElementById(`runTotal${j+1}`).innerHTML = totalRunTime;
+            document.querySelector(`#data${j+1}`).innerHTML = totalRunTime + 'ms';
         }
         // this is a gpu-buffer we own, so we need to dispose it
         last_hidden_state.dispose();
@@ -541,6 +556,18 @@ const getQueryValue = (name) => {
     return urlParams.get(name);
 }
 
+let textEncoderFetch = null;
+let textEncoderCreate = null;
+let textEncoderRun1 = null;
+let textEncoderRun2 = null;
+let textEncoderRun3 = null;
+let textEncoderRun4 = null;
+let unetFetch = null;
+let unetCreate = null;
+let vaeFetch = null;
+let vaeCreate = null;
+let generate = null;
+
 const ui = async () => {
     await setupORT();
 
@@ -549,6 +576,38 @@ const ui = async () => {
         title.innerHTML = 'WebGPU';
     }
     await checkWebNN();
+
+    // const img_div_ids = ["#img_div_0", "#img_div_1", "#img_div_2", "#img_div_3"];
+    // [img_div_0, img_div_1, img_div_2, img_div_3] = img_div_ids.map(id => document.querySelector(id));
+
+    const img_divs = [img_div_0, img_div_1, img_div_2, img_div_3];
+    img_divs.forEach(div => div.setAttribute('class', 'frame placeholder'));
+
+    const elementIds = [
+        "#textEncoderFetch", 
+        "#textEncoderCreate", 
+        "#textEncoderRun1", 
+        "#textEncoderRun2", 
+        "#textEncoderRun3", 
+        "#textEncoderRun4", 
+        "#unetFetch", 
+        "#unetCreate", 
+        "#vaeFetch", 
+        "#vaeCreate"
+    ];
+
+    [
+        textEncoderFetch, 
+        textEncoderCreate, 
+        textEncoderRun1, 
+        textEncoderRun2, 
+        textEncoderRun3, 
+        textEncoderRun4, 
+        unetFetch, 
+        unetCreate, 
+        vaeFetch, 
+        vaeCreate
+    ] = elementIds.map(id => document.querySelector(id));
 
     switch (config.provider) {
         case "webgpu":
@@ -570,7 +629,9 @@ const ui = async () => {
     }
     
     const prompt = document.querySelector("#user-input");
-    const generate = document.querySelector("#generate");
+    
+    generate = document.querySelector("#generate");
+    generate.disabled = true;
     prompt.value = "Paris with the river in the background";
     // Event listener for Ctrl + Enter or CMD + Enter
     prompt.addEventListener('keydown', function (e) {
