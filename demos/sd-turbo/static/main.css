@@ -307,6 +307,11 @@ h1.title span {
     color: var(--bg);
     transform: skew(-15deg);
     text-shadow: rgba(0,0,0,.2) 1px 1px 1px;
+    display: none;
+}
+
+#data_area div.show {
+    display: inline-block;
 }
 
 #data_area div:hover {

@@ -329,6 +329,7 @@ async function generate_image() {
             log(`[Total] Image ${j+1} execution time: ${totalRunTime}ms`);
             document.getElementById(`runTotal${j+1}`).innerHTML = totalRunTime;
             document.querySelector(`#data${j+1}`).innerHTML = totalRunTime + 'ms';
+            document.querySelector(`#data${j+1}`).setAttribute('class', 'show');
         }
         // this is a gpu-buffer we own, so we need to dispose it
         last_hidden_state.dispose();
