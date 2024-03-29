@@ -103,6 +103,9 @@ async function fetchAndCache(base_url, model_path) {
 let textEncoderFetchProgress = 0;
 let unetFetchProgress = 0;
 let vaeDecoderFetchProgress = 0;
+let textEncoderCompileProgress = 0;
+let unetCompileProgress = 0;
+let vaeDecoderCompileProgress = 0;
 
 // Get model via Origin Private File System
 async function getModelOPFS(name, url, updateModel) {
@@ -133,11 +136,10 @@ async function getModelOPFS(name, url, updateModel) {
             } else if (name == 'unet') {
                 unetFetchProgress = 63.00;
             } else if (name == 'vae_decoder') {
-                // vaeDecoderFetchProgress = 3.00;
-                vaeDecoderFetchProgress = 10.00;
+                vaeDecoderFetchProgress = 3.00;
             }
 
-            progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress;
+            progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
             updateLoadWave(progress.toFixed(2));
             return buffer;
         }
@@ -166,11 +168,11 @@ async function readResponse(name, response) {
         } else if (name == 'unet') {
             unetFetchProgress = 0.63 * fetchProgress;
         } else if (name == 'vae_decoder') {
-            // vaeDecoderFetchProgress = 0.03 * fetchProgress;
-            vaeDecoderFetchProgress = 0.10 * fetchProgress;
+            vaeDecoderFetchProgress = 0.03 * fetchProgress;
         }
 
-        progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress;
+        progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
+
         updateLoadWave(progress.toFixed(2));
 
         if (newLoaded > total) {
@@ -228,15 +230,18 @@ async function load_models(models) {
 
             if (name == 'text_encoder') {
                 textEncoderCreate.innerHTML = createTime;
-                progress = progress + 2;
+                textEncoderCompileProgress = 2;
+                progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
                 updateLoadWave(progress.toFixed(2));
             } else if (name == 'unet') {
                 unetCreate.innerHTML = createTime;
-                progress = progress + 5;
+                unetCompileProgress = 5;
+                progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
                 updateLoadWave(progress.toFixed(2));
             } else if(name == 'vae_decoder') {
                 vaeCreate.innerHTML = createTime;
-                progress = progress + 1;
+                vaeDecoderCompileProgress = 1;
+                progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
                 updateLoadWave(progress.toFixed(2));
             }
 
