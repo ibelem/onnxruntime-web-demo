@@ -214,6 +214,7 @@ async function load_models(models) {
 
             start = performance.now();
             const sess_opt = { ...opt, ...model.opt };
+            console.log(sess_opt);
             models[name].sess = await ort.InferenceSession.create(modelBuffer, sess_opt);
             let createTime = (performance.now() - start).toFixed(2);
 
