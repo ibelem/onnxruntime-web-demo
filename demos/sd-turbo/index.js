@@ -101,6 +101,9 @@ async function load_models(models) {
     } else {
         log("[Load] Loading models");
     }
+
+    updateLoadWave(0);
+
     for (const [name, model] of Object.entries(models)) {
         try {
             let start = performance.now();
@@ -123,10 +126,13 @@ async function load_models(models) {
 
             if (name == 'text_encoder') {
                 textEncoderCreate.innerHTML = createTime;
+                updateLoadWave(10);
             } else if (name == 'unet') {
                 unetCreate.innerHTML = createTime;
+                updateLoadWave(90);
             } else if(name == 'vae_decoder') {
                 vaeCreate.innerHTML = createTime;
+                updateLoadWave(99);
             }
 
             log(`[Session Create] ${model.url} completed · ${createTime}ms`);
@@ -136,6 +142,7 @@ async function load_models(models) {
         }
     }
     log("[Load] Ready to generate images");
+    updateLoadWave(100);
     generate.disabled = false;
 }
 
@@ -242,7 +249,28 @@ function draw_image(t, image_nr) {
 }
 
 async function generate_image() {
+    const img_divs = [img_div_0, img_div_1, img_div_2, img_div_3];
+    img_divs.forEach(div => div.setAttribute('class', 'frame'));
+
     try {
+        textEncoderRun1.innerHTML = '';
+        textEncoderRun2.innerHTML = '';
+        textEncoderRun3.innerHTML = '';
+        textEncoderRun4.innerHTML = '';
+        unetRun1.innerHTML = '';
+        unetRun2.innerHTML = '';
+        unetRun3.innerHTML = '';
+        unetRun4.innerHTML = '';
+        runTotal1.innerHTML = '';
+        runTotal2.innerHTML = '';
+        runTotal3.innerHTML = '';
+        runTotal4.innerHTML = '';
+
+        document.querySelector(`#data1`).innerHTML = '... ms';
+        document.querySelector(`#data2`).innerHTML = '... ms';
+        document.querySelector(`#data3`).innerHTML = '... ms';
+        document.querySelector(`#data4`).innerHTML = '... ms';
+
         log(`[Session Run] Beginning`);
 
         let canvases = [];
@@ -566,7 +594,31 @@ let unetFetch = null;
 let unetCreate = null;
 let vaeFetch = null;
 let vaeCreate = null;
+let unetRun1 = null;
+let unetRun2 = null;
+let unetRun3 = null;
+let unetRun4 = null;
+let runTotal1 = null;
+let runTotal2 = null;
+let runTotal3 = null;
+let runTotal4 = null;
 let generate = null;
+let loadwave = null;
+let loadwaveData = null; 
+
+const updateLoadWave = (value) => {
+    loadwave = document.querySelectorAll('.loadwave');
+    loadwaveData = document.querySelectorAll('.loadwave-data strong');
+
+    if(loadwave && loadwaveData) {
+        loadwave.forEach(l => {
+            l.style.setProperty(`--loadwave-value`, value);
+        })
+        loadwaveData.forEach(data => {
+            data.innerHTML = value;
+        });
+    }
+}
 
 const ui = async () => {
     await setupORT();
@@ -581,7 +633,7 @@ const ui = async () => {
     // [img_div_0, img_div_1, img_div_2, img_div_3] = img_div_ids.map(id => document.querySelector(id));
 
     const img_divs = [img_div_0, img_div_1, img_div_2, img_div_3];
-    img_divs.forEach(div => div.setAttribute('class', 'frame placeholder'));
+    img_divs.forEach(div => div.setAttribute('class', 'frame loadwave'));
 
     const elementIds = [
         "#textEncoderFetch", 
@@ -590,6 +642,14 @@ const ui = async () => {
         "#textEncoderRun2", 
         "#textEncoderRun3", 
         "#textEncoderRun4", 
+        "#unetRun1",
+        "#unetRun2",
+        "#unetRun3",
+        "#unetRun4",
+        "#runTotal1",
+        "#runTotal2",
+        "#runTotal3",
+        "#runTotal4",
         "#unetFetch", 
         "#unetCreate", 
         "#vaeFetch", 
@@ -603,6 +663,14 @@ const ui = async () => {
         textEncoderRun2, 
         textEncoderRun3, 
         textEncoderRun4, 
+        unetRun1,
+        unetRun2,
+        unetRun3,
+        unetRun4,
+        runTotal1,
+        runTotal2,
+        runTotal3,
+        runTotal4,
         unetFetch, 
         unetCreate, 
         vaeFetch, 

@@ -51,7 +51,9 @@
     --main-darker: rgb(20, 74, 204, 1);
     --border: rgb(230, 230, 230, 1);
     --green: rgba(1, 212, 73, 1);
-    --yellow: rgb(255, 0, 129);
+    --pink: rgb(255, 0, 129);
+    --main-alpha-2: rgba(39, 94, 254, 0.05);
+    --main-alpha: rgba(39, 94, 254, 0.1);
   }
 
 * {
@@ -301,7 +303,7 @@ h1.title span {
 
 #data_area div {
     padding: 4px 18px;
-    background-color: var(--yellow);
+    background-color: var(--pink);
     color: var(--bg);
     transform: skew(-15deg);
     text-shadow: rgba(0,0,0,.2) 1px 1px 1px;
@@ -402,36 +404,6 @@ h1.title span {
 
 .key button:disabled:hover svg path {
 	fill: var(--border);
-}
-
-.progress-bar {
-    width: 100%;
-    height: 2px;
-    background-color: var(--border);
-    overflow: hidden;
-    border-radius: 10px;
-}
-
-.progress-bar-inner {
-    height: 100%;
-    background-color: var(--main);
-    width: 0;
-    transition: width 0.3s ease-in-out;
-}
-
-.progress:hover {
-    color: var(--main);
-}
-
-.progress:hover .progress-bar-inner {
-    height: 2px;
-    background-color: var(--main);
-}
-
-.progress-bar-label {
-    margin: 10px;
-    font-size: 0.9rem;
-    text-align: center;
 }
 
 .log-output {
@@ -536,10 +508,6 @@ h1.title span {
     display: none;
 }
 
-.frame.placeholder canvas {
-    display: none;
-}
-
 .frame.inferencing canvas {
     display: none;
 }
@@ -548,14 +516,6 @@ h1.title span {
     display: inline-block;
     border-radius: 5px;
     box-shadow: inset 0 0 1px 0 rgba(0,0,0,.2);
-}
-
-.frame.placeholder svg {
-    display: inline-block;
-}
-
-.frame.inferencing svg {
-    display: inline-block;
 }
 
 .frame.done svg {
@@ -576,10 +536,6 @@ h1.title span {
     100% { transform: rotate(360deg); }
   }
 
-.inferncing svg {
-    animation: spin 2s linear infinite;
-}
-
 .grid-4-41 {
     display: grid;
     grid-template-columns: 4fr 1fr;
@@ -589,8 +545,139 @@ h1.title span {
     align-items: center;
 }
 
-#change_seed {
-    cursor: pointer;
+.frame.loadwave {
+  --loadwave-value: 0;
+  --loadwave-layer-size: 1200px;
+  --loadwave-size: 190px;
+  --loadwave-effect-size: calc(var(--loadwave-size) - 20px);
+}
+
+.frame.loadwave::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50%;
+  height: 50%;
+  border-radius: 50%;
+  min-width: 8px;
+  min-height: 8px;
+  transform: translate(-50%, -50%);
+}
+
+.frame.loadwave[data-value="100"] {
+  --main-alpha-2: rgba(1, 212, 73, 0.15);
+  --main-alpha: rgba(1, 212, 73, 0.05);
+}
+
+.frame.loadwave[data-value="100"]::before {
+  animation: wave 1.3s 0.1s ease infinite both;
+}
+
+.frame.loadwave, .frame.loadwave .loadwave-effect {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+}
+
+.frame.loadwave .loadwave-effect {
+  min-width: 23vw;
+  min-height: 40vh;
+  border: none;
+  margin: auto;
+  overflow: hidden;
+}
+
+.frame.loadwave .loadwave-data {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 90%;
+  transform: translate(-50%, -50%);
+  display: inline-block;
+  color: var(--color-black);
+  text-align: center;
+  overflow: hidden;
+}
+
+.frame.loadwave .loadwave-data strong {
+  font-size: 200%;
+}
+
+.frame.loadwave .loadwave-data span {
+  font-size: 120%;
+}
+
+.frame.loadwave .loadwave-layer {
+  left: -50%;
+  right: 50%;
+  background: var(--main-alpha-2);
+  transform-origin: center center;
+  animation: rotates 8s linear infinite both;
+  position: absolute;
+  top: calc(100% - var(--loadwave-value) * 1%);
+  width: var(--loadwave-layer-size);
+  height: var(--loadwave-layer-size);
+  border-radius: calc(var(--loadwave-layer-size) / 2.5);
+}
+
+.frame.loadwave .loadwave-layer:nth-child(2) {
+  background: var(--main-alpha);
+  transform: rotate(90deg);
+}
+
+@keyframes wave {
+  from, 0% {
+    width: 50%;
+    height: 50%;
+    background: var(--main-alpha-2);
+    opacity: 1;
+  }
+  30% {
+    opacity: 1;
+  }
+  to, 100% {
+    width: 150%;
+    height: 150%;
+    background: var(--main-alpha);
+    opacity: 0;
+  }
+}
+
+@keyframes rotates {
+  to, 100% {
+    transform: rotate(360deg);
+  }
+}
+
+.frame .loadwave-effect, .frame .data {
+    display: none;
+}
+
+.frame.loadwave .loadwave-effect, .frame.loadwave .data {
+    display: block;
+}
+
+.frame.inferencing .loadwave-data {
+    position: static;
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    width: auto;
+    transform: none;
+}
+
+.frame.inferncing .loadwave-data svg {
+    display: block;
+    animation: spin 2s linear infinite;
 }
 
 .p1 {
@@ -624,7 +711,7 @@ h1.title span {
 }
 
 .error {
-    background-color: var(--yellow);
+    background-color: var(--pink);
     color: var(--bg);
     font-size: 0.9rem;
     border-radius: 50px;
@@ -660,7 +747,7 @@ h1.title span {
 }
 
 #webnnstatus.red {
-    background-color: var(--yellow);
+    background-color: var(--pink);
     color: var(--bg);
     border-radius: 50px;
     padding: 4px 12px;
@@ -780,9 +867,5 @@ h1.title span {
 
     .v1, .v9 {
         height: auto;
-    }
-
-    .progress {
-        width: 100%;
     }
 }

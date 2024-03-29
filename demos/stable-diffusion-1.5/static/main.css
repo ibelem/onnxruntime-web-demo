@@ -69,7 +69,7 @@
     --main-darker: rgb(20, 74, 204, 1);
     --border: rgb(230, 230, 230, 1);
     --green: rgba(1, 212, 73, 1);
-    --yellow: rgb(255, 0, 129);
+    --pink: rgb(255, 0, 129);
   }
 
 * {
@@ -526,7 +526,7 @@ h1.title span {
 }
 
 .error {
-    background-color: var(--yellow);
+    background-color: var(--pink);
     color: var(--bg);
     font-size: 0.9rem;
     border-radius: 50px;
@@ -561,7 +561,7 @@ h1.title span {
 }
 
 #webnnstatus.red {
-    background-color: var(--yellow);
+    background-color: var(--pink);
     color: var(--bg);
     border-radius: 50px;
     padding: 4px 12px;
