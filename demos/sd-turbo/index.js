@@ -241,7 +241,6 @@ async function load_models(models) {
             }
 
             log(`[Session Create] ${modelNameInLog} completed · ${createTime}ms`);
-            updateLoadWave(100.00);
 
         } catch (e) {
             log(`[Load] ${modelNameInLog} failed, ${e}`);
