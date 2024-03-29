@@ -133,7 +133,8 @@ async function getModelOPFS(name, url, updateModel) {
             } else if (name == 'unet') {
                 unetFetchProgress = 63.00;
             } else if (name == 'vae_decoder') {
-                vaeDecoderFetchProgress = 3.00;
+                // vaeDecoderFetchProgress = 3.00;
+                vaeDecoderFetchProgress = 10.00;
             }
 
             progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress;
@@ -165,7 +166,8 @@ async function readResponse(name, response) {
         } else if (name == 'unet') {
             unetFetchProgress = 0.63 * fetchProgress;
         } else if (name == 'vae_decoder') {
-            vaeDecoderFetchProgress = 0.03 * fetchProgress;
+            // vaeDecoderFetchProgress = 0.03 * fetchProgress;
+            vaeDecoderFetchProgress = 0.10 * fetchProgress;
         }
 
         progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress;
@@ -226,19 +228,20 @@ async function load_models(models) {
 
             if (name == 'text_encoder') {
                 textEncoderCreate.innerHTML = createTime;
-                progress += 2;
+                progress = progress + 2;
                 updateLoadWave(progress.toFixed(2));
             } else if (name == 'unet') {
                 unetCreate.innerHTML = createTime;
-                progress += 5;
+                progress = progress + 5;
                 updateLoadWave(progress.toFixed(2));
             } else if(name == 'vae_decoder') {
                 vaeCreate.innerHTML = createTime;
-                progress += 1;
+                progress = progress + 1;
                 updateLoadWave(progress.toFixed(2));
             }
 
             log(`[Session Create] ${modelNameInLog} completed · ${createTime}ms`);
+            updateLoadWave(100.00);
 
         } catch (e) {
             log(`[Load] ${modelNameInLog} failed, ${e}`);
