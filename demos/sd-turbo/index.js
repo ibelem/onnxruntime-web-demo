@@ -100,6 +100,10 @@ async function fetchAndCache(base_url, model_path) {
     }
 }
 
+let textEncoderFetchProgress = 0;
+let unetFetchProgress = 0;
+let vaeDecoderFetchProgress = 0;
+
 // Get model via Origin Private File System
 async function getModelOPFS(name, url, updateModel) {
     const root = await navigator.storage.getDirectory();
@@ -125,13 +129,14 @@ async function getModelOPFS(name, url, updateModel) {
         let buffer = await blob.arrayBuffer();
         if (buffer) {
             if (name == 'text_encoder') {
-                progress += 26.00;
+                textEncoderFetchProgress = 26.00;
             } else if (name == 'unet') {
-                progress += 63.00;
+                unetFetchProgress = 63.00;
             } else if (name == 'vae_decoder') {
-                progress += 3.00;
+                vaeDecoderFetchProgress = 3.00;
             }
 
+            progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress;
             updateLoadWave(progress.toFixed(2));
             return buffer;
         }
@@ -156,13 +161,14 @@ async function readResponse(name, response) {
         fetchProgress = (newLoaded / contentLength) * 100;
 
         if (name == 'text_encoder') {
-            progress = progress + 0.26 * fetchProgress;
+            textEncoderFetchProgress = 0.26 * fetchProgress;
         } else if (name == 'unet') {
-            progress = progress + 0.63 * fetchProgress;
+            unetFetchProgress = 0.63 * fetchProgress;
         } else if (name == 'vae_decoder') {
-            progress = progress + 0.03 * fetchProgress;
+            vaeDecoderFetchProgress = 0.03 * fetchProgress;
         }
 
+        progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress;
         updateLoadWave(progress.toFixed(2));
 
         if (newLoaded > total) {
