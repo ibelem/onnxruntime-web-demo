@@ -78,36 +78,129 @@ async function fetchAndCache(base_url, model_path) {
         return data;
     } catch (error) {
         log(`[Load] ${model_path} (network)`);
-        return await fetch(url).then(response => response.arrayBuffer());
+        // return await fetch(url).then(response => response.arrayBuffer());
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            log(`[Error] HTTP status: ${response.status}`);
+        }
+        const contentLength = response.headers.get('Content-Length');
+        const total = parseInt(contentLength, 10);
+        let loaded = 0;
+
+        const reader = response.body.getReader();
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+                return response.arrayBuffer();
+            }
+            loaded += value.length;
+            // console.log(`Progress: ${(loaded / total) * 100}%`);
+        }
     }
+}
+
+// Get model via Origin Private File System
+async function getModelOPFS(name, url, updateModel) {
+    const root = await navigator.storage.getDirectory();
+    let fileHandle;
+
+    async function updateFile() {
+        const response = await fetch(url);
+        const buffer = await readResponse(name, response);
+        fileHandle = await root.getFileHandle(name, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(buffer);
+        await writable.close();
+        return buffer;
+    }
+
+    if (updateModel) {
+        return await updateFile();
+    }
+
+    try {
+        fileHandle = await root.getFileHandle(name);
+        const blob = await fileHandle.getFile();
+        let buffer = await blob.arrayBuffer();
+        if (buffer) {
+            if (name == 'text_encoder') {
+                progress += 26.00;
+            } else if (name == 'unet') {
+                progress += 63.00;
+            } else if (name == 'vae_decoder') {
+                progress += 3.00;
+            }
+
+            updateLoadWave(progress.toFixed(2));
+            return buffer;
+        }
+
+    } catch (e) {
+        return await updateFile();
+    }
+}
+
+async function readResponse(name, response) {
+    const contentLength = response.headers.get('Content-Length');
+    let total = parseInt(contentLength ?? '0');
+    let buffer = new Uint8Array(total);
+    let loaded = 0;
+
+    const reader = response.body.getReader();
+    async function read() {
+        const { done, value } = await reader.read();
+        if (done) return;
+
+        let newLoaded = loaded + value.length;
+        fetchProgress = (newLoaded / contentLength) * 100;
+
+        if (name == 'text_encoder') {
+            progress = progress + 0.26 * fetchProgress;
+        } else if (name == 'unet') {
+            progress = progress + 0.63 * fetchProgress;
+        } else if (name == 'vae_decoder') {
+            progress = progress + 0.03 * fetchProgress;
+        }
+
+        updateLoadWave(progress.toFixed(2));
+
+        if (newLoaded > total) {
+            total = newLoaded;
+            let newBuffer = new Uint8Array(total);
+            newBuffer.set(buffer);
+            buffer = newBuffer;
+        }
+        buffer.set(value, loaded);
+        loaded = newLoaded;
+        return read();
+    }
+
+    await read();
+    return buffer;
 }
 
 /*
  * load models used in the pipeline
  */
 async function load_models(models) {
-    log("[Load] Execution provider: " + config.provider);
-    const cache = await caches.open("onnx");
-    let missing = 0;
-    for (const [name, model] of Object.entries(models)) {
-        const url = `${config.model}/${model.url}`;
-        let cachedResponse = await cache.match(url);
-        if (cachedResponse === undefined) {
-            missing += model.size;
-        }
-    }
-    if (missing > 0) {
-        log(`[Load] Downloading ${missing}MB from network ...`);
-    } else {
-        log("[Load] Loading models");
-    }
-
-    updateLoadWave(0);
+    log("[Load] ONNX Runtime Execution Provider: " + config.provider);
+    updateLoadWave(0.00);
 
     for (const [name, model] of Object.entries(models)) {
+        let modelNameInLog = '';
         try {
             let start = performance.now();
-            const model_bytes = await fetchAndCache(config.model, model.url);
+            let modelUrl = `${config.model}/${name}/model.onnx`;
+            if (name == 'text_encoder') {
+                modelNameInLog = 'Text Encoder';
+            } else if (name == 'unet') {
+                modelNameInLog = 'UNet';
+            } else if(name == 'vae_decoder') {
+                modelNameInLog = 'VAE Decoder'
+            }
+            log(`[Load] Loading model ${modelNameInLog} · ${model.size}`);
+            let modelBuffer = await getModelOPFS(name, modelUrl, false);
             let modelFetchTime = (performance.now() - start).toFixed(2);
             if (name == 'text_encoder') {
                 textEncoderFetch.innerHTML = modelFetchTime;
@@ -116,34 +209,43 @@ async function load_models(models) {
             } else if(name == 'vae_decoder') {
                 vaeFetch.innerHTML = modelFetchTime;
             }
-            log(`[Load] ${model.url} completed · ${modelFetchTime}ms`);
-            log(`[Session Create] Beginning ${model.url}`);
+            log(`[Load] ${modelNameInLog} loaded · ${modelFetchTime}ms`);
+            log(`[Session Create] Beginning ${modelNameInLog}`);
 
             start = performance.now();
             const sess_opt = { ...opt, ...model.opt };
-            models[name].sess = await ort.InferenceSession.create(model_bytes, sess_opt);
+            models[name].sess = await ort.InferenceSession.create(modelBuffer, sess_opt);
             let createTime = (performance.now() - start).toFixed(2);
 
             if (name == 'text_encoder') {
                 textEncoderCreate.innerHTML = createTime;
-                updateLoadWave(10);
+                progress += 2;
+                updateLoadWave(progress.toFixed(2));
             } else if (name == 'unet') {
                 unetCreate.innerHTML = createTime;
-                updateLoadWave(90);
+                progress += 5;
+                updateLoadWave(progress.toFixed(2));
             } else if(name == 'vae_decoder') {
                 vaeCreate.innerHTML = createTime;
-                updateLoadWave(99);
+                progress += 1;
+                updateLoadWave(progress.toFixed(2));
             }
 
-            log(`[Session Create] ${model.url} completed · ${createTime}ms`);
+            log(`[Session Create] ${modelNameInLog} completed · ${createTime}ms`);
 
         } catch (e) {
-            log(`[Load] ${model.url} failed, ${e}`);
+            log(`[Load] ${modelNameInLog} failed, ${e}`);
         }
     }
-    log("[Load] Ready to generate images");
-    updateLoadWave(100);
+
+    updateLoadWave(100.00);
+    log("[Session Create] Ready to generate images");
+    let image_area = document.querySelectorAll('#image_area>div');
+    image_area.forEach(i=> {
+        i.setAttribute('class','frame');
+    });
     generate.disabled = false;
+    document.querySelector("#user-input").setAttribute('class', 'form-control enabled');
 }
 
 const config = getConfig();
@@ -151,24 +253,27 @@ const config = getConfig();
 const models = {
     "unet": {
         // original model from dwayne, then I dump new one from local graph optimization.
-        url: "unet/model.onnx", size: 640,
+        url: "unet/model.onnx", 
+        size: '1.61GB',
         opt: { graphOptimizationLevel: 'disabled' }, // avoid wasm heap issue (need Wasm memory 64)
     },
     "text_encoder": {
         // orignal model from guschmue, I convert the output to fp16.
-        url: "text_encoder/model.onnx", size: 1700,
+        url: "text_encoder/model.onnx", 
+        size: '649MB',
         opt: { freeDimensionOverrides: { batch_size: 1, sequence_length: 77 } },
     },
     "vae_decoder": {
         // use guschmue's model has precision lose in webnn caused by instanceNorm op,
         // covert the model to run instanceNorm in fp32 (insert cast nodes).
-        url: "vae_decoder/model.onnx", size: 95,
+        url: "vae_decoder/model.onnx",
+        size: '94.5MB',
         // opt: { freeDimensionOverrides: { batch_size: 1, num_channels_latent: 4, height_latent: 64, width_latent: 64 } }
         opt: { freeDimensionOverrides: { batch: 1, channels: 4, height: 64, width: 64 } }
-
     }
 }
 
+let progress = 0;
 let inferenceProgress = 0;
 
 let tokenizer;
@@ -273,7 +378,6 @@ async function generate_image() {
 
         log(`[Session Run] Beginning`);
 
-        let canvases = [];
         await loading;
 
         for (let j = 0; j < config.images; j++) {
@@ -284,7 +388,7 @@ async function generate_image() {
         const prompt = document.querySelector("#user-input");
         const { input_ids } = await tokenizer(prompt.value, { padding: true, max_length: 77, truncation: true, return_tensor: false });
 
-        // text-encoder
+        // text_encoder
         let start = performance.now();
         const { last_hidden_state } = await models.text_encoder.sess.run(
             { "input_ids": new ort.Tensor("int32", input_ids, [1, input_ids.length]) });
@@ -618,6 +722,12 @@ const updateLoadWave = (value) => {
         loadwaveData.forEach(data => {
             data.innerHTML = value;
         });
+
+        if(value === 100) {
+            loadwave.forEach(l => {
+                l.dataset.value = value;
+            })
+        }
     }
 }
 
@@ -701,7 +811,7 @@ const ui = async () => {
     
     generate = document.querySelector("#generate");
     generate.disabled = true;
-    prompt.value = "Paris with the river in the background";
+    prompt.value = "a cat under the snow with blue eyes, covered by snow, cinematic style, medium shot, professional photo";
     // Event listener for Ctrl + Enter or CMD + Enter
     prompt.addEventListener('keydown', function (e) {
         if (e.ctrlKey && e.key === 'Enter') {

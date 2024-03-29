@@ -36,24 +36,24 @@
     --font: rgba(45, 45, 45, 1);
     --font-weak: rgba(0, 0, 0, 0.6);
     --disabled: rgba(245, 245, 245, 0.2);
-    --bg-2: rgb(230, 230, 230, 0.2);
-    --bg-2h: rgb(230, 230, 230, 0.4);
+    --bg-2: rgba(230, 230, 230, 0.2);
+    --bg-2h: rgba(230, 230, 230, 0.4);
     --bg-3: rgba(200, 200, 200, 0.2);
     --bg-btn: rgba(255, 255, 255, 1);
     --main-01: rgba(39, 94, 254, 0.1);
     --main-001: rgba(39, 94, 254, 0.01);
     --main-05: rgba(39, 94, 254, 0.5);
     --main-06: rgba(39, 94, 254, 0.6);
-    --scroll: rgb(0, 0, 0, 0.1);
-    --scroll-2: rgb(0, 0, 0, 0.2);
-    --main: rgb(39, 94, 254, 1);
-    --main-dark: rgb(24, 79, 238, 1);
-    --main-darker: rgb(20, 74, 204, 1);
-    --border: rgb(230, 230, 230, 1);
+    --scroll: rgba(0, 0, 0, 0.1);
+    --scroll-2: rgba(0, 0, 0, 0.2);
+    --main: rgba(39, 94, 254, 1);
+    --main-dark: rgba(24, 79, 238, 1);
+    --main-darker: rgba(20, 74, 204, 1);
+    --border: rgba(230, 230, 230, 1);
     --green: rgba(1, 212, 73, 1);
-    --pink: rgb(255, 0, 129);
-    --main-alpha-2: rgba(39, 94, 254, 0.05);
-    --main-alpha: rgba(39, 94, 254, 0.1);
+    --pink: rgba(255, 0, 129, 1);
+    --main-alpha-2: rgba(230, 230, 230, 0.4);
+    --main-alpha: rgba(230, 230, 230, 0.2);
   }
 
 * {
@@ -234,7 +234,6 @@ h1.title span {
     width: 100%;
     padding: 8px 8px;
     border: 1px solid var(--border);
-    color: var(--font);
     background-color: var(--bg-2);
     border-radius: 5px;
     font-family: "Archivo", system-ui, sans-serif;
@@ -263,6 +262,7 @@ h1.title span {
     max-width: 50vw;
 }
 
+
 .button-group:hover {
     border: 1px solid var(--main) !important;
 }
@@ -276,6 +276,11 @@ h1.title span {
     padding: 4px 24px;
     resize: vertical;
     line-height: 1rem;
+    color: var(--font-weak);
+}
+
+#user-input.enabled {
+    color: var(--main);
 }
 
 .button-group textarea:hover, .button-group textarea:focus {
@@ -306,6 +311,7 @@ h1.title span {
     background-color: var(--pink);
     color: var(--bg);
     transform: skew(-15deg);
+    border-radius: 5px;
     text-shadow: rgba(0,0,0,.2) 1px 1px 1px;
     display: none;
 }
@@ -572,12 +578,19 @@ h1.title span {
 }
 
 .frame.loadwave[data-value="100"] {
-  --main-alpha-2: rgba(1, 212, 73, 0.15);
-  --main-alpha: rgba(1, 212, 73, 0.05);
+  background-color: var(--main-alpha-2);
+}
+
+.frame.loadwave[data-value="100"]:hover {
+    background-color: var(--bg);
 }
 
 .frame.loadwave[data-value="100"]::before {
-  animation: wave 1.3s 0.1s ease infinite both;
+  background-color: transparent;
+}
+
+.frame.loadwave[data-value="100"] .loadwave-effect {
+    display: none;
 }
 
 .frame.loadwave, .frame.loadwave .loadwave-effect {
@@ -678,6 +691,10 @@ h1.title span {
     justify-items: center;
     width: auto;
     transform: none;
+}
+
+.frame.loadwave .loadwave-data svg {
+    animation: spin 8s linear infinite;
 }
 
 .frame.inferncing .loadwave-data svg {
