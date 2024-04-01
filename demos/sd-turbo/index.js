@@ -93,9 +93,9 @@ async function getModelOPFS(name, url, updateModel) {
             if (name == 'text_encoder') {
                 textEncoderFetchProgress = 20.00;
             } else if (name == 'unet') {
-                unetFetchProgress = 60.00;
+                unetFetchProgress = 50.00;
             } else if (name == 'vae_decoder') {
-                vaeDecoderFetchProgress = 4.00;
+                vaeDecoderFetchProgress = 8.00;
             }
 
             progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
@@ -125,9 +125,9 @@ async function readResponse(name, response) {
         if (name == 'text_encoder') {
             textEncoderFetchProgress = 0.20 * fetchProgress;
         } else if (name == 'unet') {
-            unetFetchProgress = 0.60 * fetchProgress;
+            unetFetchProgress = 0.50 * fetchProgress;
         } else if (name == 'vae_decoder') {
-            vaeDecoderFetchProgress = 0.04 * fetchProgress;
+            vaeDecoderFetchProgress = 0.08 * fetchProgress;
         }
 
         progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
@@ -195,12 +195,12 @@ async function load_models(models) {
                 updateLoadWave(progress.toFixed(2));
             } else if (name == 'unet') {
                 unetCreate.innerHTML = createTime;
-                unetCompileProgress = 10;
+                unetCompileProgress = 15;
                 progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
                 updateLoadWave(progress.toFixed(2));
             } else if(name == 'vae_decoder') {
                 vaeCreate.innerHTML = createTime;
-                vaeDecoderCompileProgress = 1;
+                vaeDecoderCompileProgress = 2;
                 progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
                 updateLoadWave(progress.toFixed(2));
             }
@@ -216,18 +216,11 @@ async function load_models(models) {
     log("[Session Create] Ready to generate images");
     let image_area = document.querySelectorAll('#image_area>div');
     image_area.forEach(i=> {
-        i.setAttribute('class','frame');
+        i.setAttribute('class','frame ready');
     });
     buttons.setAttribute('class', 'button-group key loaded');
     generate.disabled = false;
     document.querySelector("#user-input").setAttribute('class', 'form-control enabled');
-    ready.forEach((e)=> {
-        e.setAttribute('class', 'ready show');
-    })
-
-    readyStrong.forEach((e)=> {
-        e.innerHTML = '100';
-    })
 }
 
 const config = getConfig();
@@ -338,13 +331,6 @@ function draw_image(t, image_nr) {
 async function generate_image() {
     const img_divs = [img_div_0, img_div_1, img_div_2, img_div_3];
     img_divs.forEach(div => div.setAttribute('class', 'frame'));
-    ready.forEach((e)=> {
-        e.setAttribute('class', 'ready');
-    })
-
-    readyStrong.forEach((e)=> {
-        e.innerHTML = '';
-    })
 
     try {
         textEncoderRun1.innerHTML = '';
@@ -701,8 +687,6 @@ let load = null;
 let buttons = null;
 let loadwave = null;
 let loadwaveData = null; 
-let ready = null;
-let readyStrong = null;
 
 const updateLoadWave = (value) => {
     loadwave = document.querySelectorAll('.loadwave');
@@ -804,8 +788,6 @@ const ui = async () => {
     generate = document.querySelector("#generate");
     generate.disabled = true;
     buttons = document.querySelector('#buttons');
-    ready = document.querySelectorAll('.ready');
-    readyStrong = document.querySelectorAll('.ready strong');
     prompt.value = "a cat under the snow with blue eyes, covered by snow, cinematic style, medium shot, professional photo";
     // Event listener for Ctrl + Enter or CMD + Enter
     prompt.addEventListener('keydown', function (e) {

@@ -627,11 +627,11 @@ h1.title span {
   overflow: hidden;
 }
 
-.frame.loadwave .loadwave-data strong {
+.frame.loadwave .loadwave-data strong, .frame.ready .loadwave-data strong {
   font-size: 200%;
 }
 
-.frame.loadwave .loadwave-data span {
+.frame.loadwave .loadwave-data span, .frame.ready .loadwave-data span {
   font-size: 120%;
 }
 
@@ -681,7 +681,7 @@ h1.title span {
     display: none;
 }
 
-.frame.loadwave .loadwave-effect, .frame.loadwave .data {
+.frame.loadwave .loadwave-effect, .frame.loadwave .data, .frame.ready .data {
     display: block;
 }
 
