@@ -59,47 +59,6 @@ function randn_latents(shape, noise_sigma) {
     return data;
 }
 
-/*
- * fetch and cache model
- */
-async function fetchAndCache(base_url, model_path) {
-    const url = `${base_url}/${model_path}`;
-    try {
-        const cache = await caches.open("onnx");
-        let cachedResponse = await cache.match(url);
-        if (cachedResponse == undefined) {
-            await cache.add(url);
-            cachedResponse = await cache.match(url);
-            log([Load] `${model_path} (network)`);
-        } else {
-            log(`[Load] ${model_path} (cached)`);
-        }
-        const data = await cachedResponse.arrayBuffer();
-        return data;
-    } catch (error) {
-        log(`[Load] ${model_path} (network)`);
-        // return await fetch(url).then(response => response.arrayBuffer());
-
-        const response = await fetch(url);
-        if (!response.ok) {
-            log(`[Error] HTTP status: ${response.status}`);
-        }
-        const contentLength = response.headers.get('Content-Length');
-        const total = parseInt(contentLength, 10);
-        let loaded = 0;
-
-        const reader = response.body.getReader();
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                return response.arrayBuffer();
-            }
-            loaded += value.length;
-            // console.log(`Progress: ${(loaded / total) * 100}%`);
-        }
-    }
-}
-
 let textEncoderFetchProgress = 0;
 let unetFetchProgress = 0;
 let vaeDecoderFetchProgress = 0;
@@ -132,11 +91,11 @@ async function getModelOPFS(name, url, updateModel) {
         let buffer = await blob.arrayBuffer();
         if (buffer) {
             if (name == 'text_encoder') {
-                textEncoderFetchProgress = 26.00;
+                textEncoderFetchProgress = 20.00;
             } else if (name == 'unet') {
-                unetFetchProgress = 63.00;
+                unetFetchProgress = 60.00;
             } else if (name == 'vae_decoder') {
-                vaeDecoderFetchProgress = 3.00;
+                vaeDecoderFetchProgress = 4.00;
             }
 
             progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
@@ -164,11 +123,11 @@ async function readResponse(name, response) {
         fetchProgress = (newLoaded / contentLength) * 100;
 
         if (name == 'text_encoder') {
-            textEncoderFetchProgress = 0.26 * fetchProgress;
+            textEncoderFetchProgress = 0.20 * fetchProgress;
         } else if (name == 'unet') {
-            unetFetchProgress = 0.63 * fetchProgress;
+            unetFetchProgress = 0.60 * fetchProgress;
         } else if (name == 'vae_decoder') {
-            vaeDecoderFetchProgress = 0.03 * fetchProgress;
+            vaeDecoderFetchProgress = 0.04 * fetchProgress;
         }
 
         progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
@@ -196,6 +155,7 @@ async function readResponse(name, response) {
 async function load_models(models) {
     log("[Load] ONNX Runtime Execution Provider: " + config.provider);
     updateLoadWave(0.00);
+    load.disabled = true;
 
     for (const [name, model] of Object.entries(models)) {
         let modelNameInLog = '';
@@ -230,12 +190,12 @@ async function load_models(models) {
 
             if (name == 'text_encoder') {
                 textEncoderCreate.innerHTML = createTime;
-                textEncoderCompileProgress = 2;
+                textEncoderCompileProgress = 5;
                 progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
                 updateLoadWave(progress.toFixed(2));
             } else if (name == 'unet') {
                 unetCreate.innerHTML = createTime;
-                unetCompileProgress = 5;
+                unetCompileProgress = 10;
                 progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
                 updateLoadWave(progress.toFixed(2));
             } else if(name == 'vae_decoder') {
@@ -258,8 +218,16 @@ async function load_models(models) {
     image_area.forEach(i=> {
         i.setAttribute('class','frame');
     });
+    buttons.setAttribute('class', 'button-group key loaded');
     generate.disabled = false;
     document.querySelector("#user-input").setAttribute('class', 'form-control enabled');
+    ready.forEach((e)=> {
+        e.setAttribute('class', 'ready show');
+    })
+
+    readyStrong.forEach((e)=> {
+        e.innerHTML = '100';
+    })
 }
 
 const config = getConfig();
@@ -370,6 +338,13 @@ function draw_image(t, image_nr) {
 async function generate_image() {
     const img_divs = [img_div_0, img_div_1, img_div_2, img_div_3];
     img_divs.forEach(div => div.setAttribute('class', 'frame'));
+    ready.forEach((e)=> {
+        e.setAttribute('class', 'ready');
+    })
+
+    readyStrong.forEach((e)=> {
+        e.innerHTML = '';
+    })
 
     try {
         textEncoderRun1.innerHTML = '';
@@ -722,8 +697,12 @@ let runTotal2 = null;
 let runTotal3 = null;
 let runTotal4 = null;
 let generate = null;
+let load = null;
+let buttons = null;
 let loadwave = null;
 let loadwaveData = null; 
+let ready = null;
+let readyStrong = null;
 
 const updateLoadWave = (value) => {
     loadwave = document.querySelectorAll('.loadwave');
@@ -756,9 +735,6 @@ const ui = async () => {
 
     // const img_div_ids = ["#img_div_0", "#img_div_1", "#img_div_2", "#img_div_3"];
     // [img_div_0, img_div_1, img_div_2, img_div_3] = img_div_ids.map(id => document.querySelector(id));
-
-    const img_divs = [img_div_0, img_div_1, img_div_2, img_div_3];
-    img_divs.forEach(div => div.setAttribute('class', 'frame loadwave'));
 
     const elementIds = [
         "#textEncoderFetch", 
@@ -823,8 +799,13 @@ const ui = async () => {
     
     const prompt = document.querySelector("#user-input");
     
+    load = document.querySelector("#load");
+    load.disabled = false;
     generate = document.querySelector("#generate");
     generate.disabled = true;
+    buttons = document.querySelector('#buttons');
+    ready = document.querySelectorAll('.ready');
+    readyStrong = document.querySelectorAll('.ready strong');
     prompt.value = "a cat under the snow with blue eyes, covered by snow, cinematic style, medium shot, professional photo";
     // Event listener for Ctrl + Enter or CMD + Enter
     prompt.addEventListener('keydown', function (e) {
@@ -835,6 +816,19 @@ const ui = async () => {
     generate.addEventListener('click', function (e) {
         generate_image()
     });
+
+    load.addEventListener('click', ()=> {
+        hasFp16().then((fp16) => {
+            if (fp16) {
+                loading = load_models(models);
+                const img_divs = [img_div_0, img_div_1, img_div_2, img_div_3];
+                img_divs.forEach(div => div.setAttribute('class', 'frame loadwave'));
+                buttons.setAttribute('class', 'button-group key loading');
+            } else {
+                log(`[Error] Your GPU or Browser doesn't support webgpu/f16`);
+            }
+        });
+    })
 
     // ort.env.wasm.wasmPaths = 'dist/';
     ort.env.wasm.numThreads = 1;
@@ -852,14 +846,6 @@ const ui = async () => {
 
     tokenizer = await AutoTokenizer.from_pretrained(path);
     tokenizer.pad_token_id = 0;
-
-    hasFp16().then((fp16) => {
-        if (fp16) {
-            loading = load_models(models);
-        } else {
-            log(`[Error] Your GPU or Browser doesn't support webgpu/f16`);
-        }
-    });
 };
 
 document.addEventListener('DOMContentLoaded', ui, false);

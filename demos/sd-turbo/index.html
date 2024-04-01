@@ -203,6 +203,10 @@
                         <strong>0</strong>
                         <span>%</span>
                     </div>
+                    <div class="ready">
+                        <strong></strong>
+                        <span>%</span>
+                    </div>
                 </div>
                 <canvas id="img_canvas_0"></canvas>
             </div>
@@ -244,6 +248,10 @@
                     </svg>
                     <div class="data">
                         <strong>0</strong>
+                        <span>%</span>
+                    </div>
+                    <div class="ready">
+                        <strong></strong>
                         <span>%</span>
                     </div>
                 </div>
@@ -289,6 +297,10 @@
                         <strong>0</strong>
                         <span>%</span>
                     </div>
+                    <div class="ready">
+                        <strong></strong>
+                        <span>%</span>
+                    </div>
                 </div>
                 <canvas id="img_canvas_2"></canvas>
             </div>
@@ -332,6 +344,10 @@
                         <strong>0</strong>
                         <span>%</span>
                     </div>
+                    <div class="ready">
+                        <strong></strong>
+                        <span>%</span>
+                    </div>
                 </div>
                 <canvas id="img_canvas_3"></canvas>
             </div>
@@ -343,8 +359,10 @@
             <div id="data3"></div>
             <div id="data4"></div>
         </div>
-        <div class="button-group key">
+        <div class="button-group key" id="buttons">
             <textarea class="form-control" id="user-input" placeholder="Enter your prompt"></textarea>
+            <button id="load" class="button">
+                Load Models</button>
             <button id="generate" class="button" disabled>
                 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 256 256">
                     <path fill="#ffffff"

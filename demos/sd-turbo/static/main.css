@@ -508,6 +508,7 @@ h1.title span {
     align-items: center;
     justify-items: center;
     background-color: var(--bg-2);
+    min-height: 352.3px;
 }
 
 .grid-4 .frame:hover {
@@ -684,6 +685,23 @@ h1.title span {
     display: block;
 }
 
+.frame.inferencing .ready, .frame.loadwave .ready, .frame.done .ready {
+    display: none;
+}
+
+.ready {
+    display: none;
+    text-align: center;
+}
+
+.ready.show {
+    display: block;
+}
+
+.ready strong {
+    font-size: 200%;
+}
+
 .frame.inferencing .loadwave-data {
     position: static;
     display: grid;
@@ -700,6 +718,22 @@ h1.title span {
 .frame.inferncing .loadwave-data svg {
     display: block;
     animation: spin 2s linear infinite;
+}
+
+#buttons #generate, #buttons.loading #generate {
+	display: none;
+}
+
+#buttons.loaded #generate {
+	display: block;
+}
+
+#buttons #load {
+	display: block;
+}
+
+#buttons.loaded #load {
+	display: none;
 }
 
 .p1 {
@@ -746,7 +780,6 @@ h1.title span {
 }
 
 .v9 {
-    height: 93vh;
     padding: 0 40px;
 }
 
