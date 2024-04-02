@@ -12,7 +12,7 @@
 
 <head>
     <meta charset='utf-8'>
-    <title>WebNN Stable Diffusion</title>
+    <title>ONNX Runtime Web - Stable Diffusion 1.5</title>
     <link rel="apple-touch-icon" sizes="180x180" href="./static/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="./static/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="./static/favicon/favicon-16x16.png">
@@ -343,7 +343,7 @@
             ortversion.innerHTML = `ONNX Runtime Web: <a href="${ortLink}">${ortVersion}</a><br/>[To do: Use WebNN EP of ORT Web 1.18 release version]`;
         } else {
             await Utils.loadScript('onnxruntime-web', './dist/ort.all.min.js');
-            ortversion.innerHTML = `ONNX Runtime Web: Internal version`;
+            ortversion.innerHTML = `ONNX Runtime Web: Test version`;
         }
     }
 
