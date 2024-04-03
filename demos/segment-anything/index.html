@@ -156,42 +156,40 @@
       <img id="original-image" src="EgyptianCat.png" />
     </div>
 
-    <canvas id="img_canvas"></canvas>
-
-    <div class="data">
-      <strong id="encoder_latency"></strong>
-      <span>ms</span>
-      Encoder
-    </div>
-
-    <div class="data">
-      <strong id="decoder_latency"></strong>
-      <span>ms</span>
-      Decoder
-    </div>
-
-    <form>
-      <div class="form-group ">
-        <input title="Upload Image" type="file" id="file-in" name="file-in"
-          accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*">
+    <div class="grid-2">
+      <div id="placeholder">
+        <div></div>
+        <canvas id="img_canvas"></canvas>
       </div>
-    </form>
-    <div class="form-group ">
-      <button id="cut-button" type="button" class="btn btn-primary">Cut</button>
-      <button id="clear-button" type="button" class="btn btn-primary">Clear</button>
-    </div>
 
-    <div>
-      <a href="index.html?provider=wasm&model=sam_b_int8">wasm</a>
-      <a href="index.html?provider=webgpu&model=sam_b">webgpu</a>
+      <div>
+        <div class="data">
+          <div>
+            <strong id="decoder_latency"></strong>
+            <span>ms</span>
+          </div>
+          <div class="title">SAM Decoder</div>
+        </div>
+
+        <form>
+          <div class="form-group ">
+            <input title="Upload Image" type="file" id="file-in" name="file-in"
+              accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*">
+          </div>
+        </form>
+        <div class="form-group ">
+          <button id="cut-button" type="button" class="btn btn-primary">Cut</button>
+          <button id="clear-button" type="button" class="btn btn-primary">Clear</button>
+        </div>
+      </div>
     </div>
 
     <div id="status" class="log-output"></div>
 
     <div>
-      <div id="webnnstatus"><span id="circle"></span> <span id="info">WebNN</span></div>
+      <div id="webnnstatus"><span id="circle"></span> <span id="info">WebNN</span> <span id="backends"></span></div>
       <div id="ortversion"></div>
     </div>
-</div>
+  </div>
 
 </body>

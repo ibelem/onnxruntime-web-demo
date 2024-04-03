@@ -205,7 +205,7 @@ async function load_models(models) {
                 updateLoadWave(progress.toFixed(2));
             }
 
-            log(`[Session Create] ${modelNameInLog} completed · ${createTime}ms`);
+            log(`[Session Create] Create ${modelNameInLog} completed · ${createTime}ms`);
 
         } catch (e) {
             log(`[Load] ${modelNameInLog} failed, ${e}`);

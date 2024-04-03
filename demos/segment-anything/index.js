@@ -17,24 +17,24 @@ const MODELS = {
         {
             name: "SAM ViT-B Encoder (FP16)",
             url: "sam_vit_b_01ec64.encoder-fp16.onnx",
-            size: 180,
+            size: '171MB',
         },
         {
             name: "SAM ViT-B Decoder",
             url: "sam_vit_b_01ec64.decoder.onnx",
-            size: 17,
+            size: "15.7MB",
         },
     ],
     sam_b_int8: [
         {
             name: "SAM ViT-B Encoder (INT8)",
             url: "sam_vit_b-encoder-int8.onnx",
-            size: 108,
+            size: "95.6MB",
         },
         {
             name: "SAM ViT-B Decoder (INT8)",
             url: "sam_vit_b-decoder-int8.onnx",
-            size: 5,
+            size: "4.52MB",
         },
     ],
 };
@@ -239,8 +239,6 @@ async function handleClick(event) {
  * handler called when image available
  */
 async function handleImage(img) {
-    const encoder_latency = document.getElementById("encoder_latency");
-    encoder_latency.innerText = "";
     points = [];
     labels = [];
     filein.disabled = true;
@@ -279,7 +277,9 @@ async function handleImage(img) {
     const start = performance.now();
     image_embeddings = session.run(feed);
     image_embeddings.then(() => {
-        encoder_latency.innerText = `${(performance.now() - start).toFixed(1)}`;
+        log(`[Session Run] Encoder execution time: ${(performance.now() - start).toFixed(2)}ms`);
+        log(`[Session Run] Ready to segment image`);
+        log(`[Session Run] Please move the mouse to a random spot of the image`);
         canvas.style.cursor = "default";
     });
     filein.disabled = false;
@@ -374,9 +374,11 @@ async function readResponse(name, response) {
 async function load_models(models) {
     log("[Load] ONNX Runtime Execution Provider: " + config.provider);
  
-    const start = performance.now();
     for (const [id, model] of Object.entries(models)) {
+        let start;
         try {
+            let name = models[id].name;
+            start = performance.now();
             const opt = {
                 executionProviders: [config.provider],
                 enableMemPattern: false,
@@ -402,20 +404,22 @@ async function load_models(models) {
                 };
             }
 
-            let name = models[id].name;
             let modelUrl = `${config.host}/${models[id].url}`;
             log(`[Load] Loading ${name} · ${models[id].size}`);
 
             let modelBuffer = await getModelOPFS(name, modelUrl, false);
+            log(`[Load] ${name} load time: ${(performance.now() - start).toFixed(2)}ms`);
+            log(`[Session Create] Creating ${name}`);
+            start = performance.now();
             const extra_opt = model.opt || {};
             const sess_opt = { ...opt, ...extra_opt };
             model.sess = await ort.InferenceSession.create(modelBuffer, sess_opt);
+            log(`[Session Create] ${name} create time: ${(performance.now() - start).toFixed(2)}ms`);
         } catch (e) {
-            log(`[Session Create] ${modelUrl} failed, ${e}`);
+            log(`[Session Create] ${name} failed, ${e}`);
         }
     }
-    const stop = performance.now();
-    log(`[Session Create] Ready, ${(stop - start).toFixed(1)}ms`);
+    placeholder.setAttribute('class', 'none');
 }
 
 async function main() {
@@ -497,6 +501,7 @@ const getOrtDevVersion = async () => {
 
 const checkWebNN = async () => {
     let status = document.querySelector('#webnnstatus');
+    let circle = document.querySelector('#circle');
     let info = document.querySelector('#info');
     let webnnStatus = await webNnStatus();
 
@@ -513,8 +518,9 @@ const checkWebNN = async () => {
         }
     }
 
-    if (getQueryValue('provider') && getQueryValue('provider').toLowerCase().indexOf('webgpu') > -1) {
-        status.innerHTML = '';
+    if (getQueryValue('provider') && getQueryValue('provider').toLowerCase().indexOf('webnn') == -1) {
+        circle.setAttribute('class', 'none');
+        info.innerHTML = '';
     }
 };
 
@@ -591,6 +597,8 @@ const getQueryValue = (name) => {
     return urlParams.get(name);
 }
 
+let placeholder;
+
 const ui = async () => {
     await setupORT();
 
@@ -599,12 +607,19 @@ const ui = async () => {
     // ort.env.wasm.proxy = config.provider == "wasm";
 
     const title = document.querySelector('#title');
+    const backends = document.querySelector('#backends');
     if (getQueryValue('provider') && getQueryValue('provider').toLowerCase().indexOf('webgpu') > -1) {
         title.innerHTML = 'WebGPU';
+        backends.innerHTML = '<a href="index.html?provider=wasm&model=sam_b_int8" title="Wasm backend">Wasm</a> · <a href="index.html" title="WebNN backend">WebNN</a>';
     } else if (getQueryValue('provider') && getQueryValue('provider').toLowerCase().indexOf('wasm') > -1){
         title.innerHTML = 'Wasm';
+        backends.innerHTML = '<a href="index.html?provider=webgpu&model=sam_b" title="WebGPU backend">WebGPU</a> · <a href="index.html" title="WebNN backend">WebNN</a>';
+    } else {
+        title.innerHTML = 'WebNN';
+        backends.innerHTML = '· <a href="index.html?provider=wasm&model=sam_b_int8" title="Wasm backend">Wasm</a> · <a href="index.html?provider=webgpu&model=sam_b" title="WebGPU backend">WebGPU</a>';
     }
     await checkWebNN();
+    placeholder = document.querySelector('#placeholder div');
 
     const fp16 = await hasFp16();
     if (config.provider == 'webgpu' && !fp16) {

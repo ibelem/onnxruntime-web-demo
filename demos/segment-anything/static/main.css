@@ -82,6 +82,28 @@ body {
     align-items: center;
 }
 
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+    align-items: center;
+    justify-items: center;
+    margin: 1rem 0;
+}
+
+#placeholder {
+    display: block;
+    border: 1px solid var(--border);
+    height: 500px;
+    width: 500px;
+}
+
+#placeholder.none {
+    display: none;
+}
+
 #ort-logo {
     width: 108px;
     height: 30px;
@@ -288,7 +310,7 @@ h1.title span {
 }
 
 .log-output {
-    height: 12vh;
+    height: 18vh;
     padding: 10px 10px;
     background-color: var(--bg-2);
     border: 1px solid var(--border);
@@ -304,13 +326,26 @@ h1.title span {
     background-color: var(--bg-btn);
 }
 
+.data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+
+}
 
 .data strong {
-    font-size: 200%;
+    font-size: 400%;
 }
 
 .data span {
-    font-size: 120%;
+    font-size: 180%;
+}
+
+.data .title {
+    display: block;
 }
 
 .p1 {
@@ -389,6 +424,20 @@ h1.title span {
 
 .show {
     display: block;
+}
+
+#webnnstatus a {
+    color: var(--main);
+    text-decoration: none;
+}
+
+#webnnstatus a:hover {
+    color: var(--green);
+    text-decoration: underline;
+}
+
+#webnnstatus #circle.none {
+    display: none;
 }
 
 @media (max-width: 718px) { 
