@@ -173,35 +173,31 @@ async function decoder(points, labels) {
 
     if (points.length > 0) {
         // need to wait for encoder to be ready
-        try {
-            if (image_embeddings === undefined) {
-                await MODELS[config.model][0].sess;
-            }
-
-            // wait for encoder to deliver embeddings
-            const emb = await image_embeddings;
-
-            // the decoder
-            const session = MODELS[config.model][1].sess;
-
-            const feed = feedForSam(emb, points, labels);
-            const start = performance.now();
-            const res = await session.run(feed);
-            decoder_latency.innerText = `${(performance.now() - start).toFixed(2)}`;
-            unit.innerText = 'ms';
-            samDecoderIndicator.setAttribute('class', 'title');
-
-            for (let i = 0; i < points.length; i += 2) {
-                ctx.fillStyle = 'blue';
-                ctx.fillRect(points[i], points[i + 1], 10, 10);
-            }
-            const mask = res.masks;
-            maskImageData = mask.toImageData();
-            ctx.globalAlpha = 0.3;
-            ctx.drawImage(await createImageBitmap(maskImageData), 0, 0);
-        } catch (e) {
-            log(`[Session Run] Error: ${e.message}`);
+        if (image_embeddings === undefined) {
+            await MODELS[config.model][0].sess;
         }
+
+        // wait for encoder to deliver embeddings
+        const emb = await image_embeddings;
+
+        // the decoder
+        const session = MODELS[config.model][1].sess;
+
+        const feed = feedForSam(emb, points, labels);
+        const start = performance.now();
+        const res = await session.run(feed);
+        decoder_latency.innerText = `${(performance.now() - start).toFixed(2)}`;
+        unit.innerText = 'ms';
+        samDecoderIndicator.setAttribute('class', 'title');
+
+        for (let i = 0; i < points.length; i += 2) {
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(points[i], points[i + 1], 10, 10);
+        }
+        const mask = res.masks;
+        maskImageData = mask.toImageData();
+        ctx.globalAlpha = 0.3;
+        ctx.drawImage(await createImageBitmap(maskImageData), 0, 0);
     }
 }
 
@@ -404,8 +400,8 @@ async function load_models(models) {
  
     for (const [id, model] of Object.entries(models)) {
         let start;
-        let name = models[id].name;
         try {
+            let name = models[id].name;
             start = performance.now();
             const opt = {
                 executionProviders: [config.provider],
