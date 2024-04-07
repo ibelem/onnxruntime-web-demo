@@ -42,6 +42,7 @@
     --bg-btn: rgba(255, 255, 255, 1);
     --main-01: rgba(39, 94, 254, 0.1);
     --main-001: rgba(39, 94, 254, 0.01);
+    --main-005: rgba(39, 94, 254, 0.05);
     --main-05: rgba(39, 94, 254, 0.5);
     --main-06: rgba(39, 94, 254, 0.6);
     --scroll: rgb(0, 0, 0, 0.1);
@@ -94,13 +95,24 @@ body {
 }
 
 #placeholder {
-    display: block;
-    border: 1px solid var(--border);
+    align-content: center;
     height: 500px;
     width: 500px;
 }
 
-#placeholder.none {
+#placeholder.none, #placeholder .none {
+    display: none;
+}
+
+#sam-decoder-indicator {
+    padding: 4px 18px;
+    background-color: var(--pink);
+    color: var(--bg);
+    transform: skew(-15deg);
+    border-radius: 5px;
+}
+
+#sam-decoder-indicator.none {
     display: none;
 }
 
@@ -195,6 +207,98 @@ h1.title span {
     fill: var(--bg);
 }
 
+.progress {
+    padding: 1px;
+    background-color: var(--main-005);
+    border-radius: 10px;
+  }
+
+#progress-info {
+    text-align: center;
+    font-size: 0.9rem;
+    margin-bottom: 0.1rem;
+}
+
+.progress-bar {
+    height: 8px;
+    border-radius: 10px;
+    width: 0%;
+    transition: 0.4s linear;
+    transition-property: width, background-color;
+}
+
+.progress-striped .progress-bar {
+    background-color: var(--main-05);
+    background-image: linear-gradient(45deg, var(--main-06) 25%, transparent 25%, transparent 50%, var(--main-06) 50%, var(--main-06) 75%, transparent 75%, transparent);
+}
+
+.right {
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.file-upload {
+	position: relative;
+	display: inline-block;
+}
+
+.file-upload_label {
+  display: inline-block;
+}
+    
+.file-upload_input {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    font-size: 1;
+    width:0;
+    height: 100%;
+    opacity: 0;
+}
+
+.form-group {
+    display: inline-block;
+}
+
+#action-bar {
+    margin: 2rem auto 0 auto;
+}
+
+.form-group button, .form-group label {
+    display: inline-block;
+    border: 1px solid var(--border);
+    padding: 1rem;
+    margin: 0.5rem;
+    border-radius: 50%;
+    background-color: transparent;
+}
+
+.form-group button svg path, .form-group label svg path {
+    fill: var(--font);
+}
+
+.form-group button:hover, .form-group label:hover {
+    color: var(--main);
+    border: 1px solid var(--main);
+    background-color: var(--main-001);
+    cursor: pointer;
+}
+
+.form-group button:hover svg path, .form-group label:hover svg path {
+    fill: var(--main);
+}
+
+#action-bar.disable .form-group button svg path, #action-bar.disable .form-group label svg path {
+    fill: var(--border);
+}
+
+#action-bar.disable .form-group button:hover, #action-bar.disable .form-group label:hover {
+    border: 1px solid var(--border);
+}
+
 .button-group {
     display: flex;
     justify-content: space-between;
@@ -279,36 +383,6 @@ h1.title span {
 	fill: var(--border);
 }
 
-.progress-bar {
-    width: 100%;
-    height: 2px;
-    background-color: var(--border);
-    overflow: hidden;
-    border-radius: 10px;
-}
-
-.progress-bar-inner {
-    height: 100%;
-    background-color: var(--main);
-    width: 0;
-    transition: width 0.3s ease-in-out;
-}
-
-.progress:hover {
-    color: var(--main);
-}
-
-.progress:hover .progress-bar-inner {
-    height: 2px;
-    background-color: var(--main);
-}
-
-.progress-bar-label {
-    margin: 10px;
-    font-size: 0.9rem;
-    text-align: center;
-}
-
 .log-output {
     height: 18vh;
     padding: 10px 10px;
@@ -337,11 +411,11 @@ h1.title span {
 }
 
 .data strong {
-    font-size: 400%;
+    font-size: 600%;
 }
 
 .data span {
-    font-size: 180%;
+    font-size: 228%;
 }
 
 .data .title {

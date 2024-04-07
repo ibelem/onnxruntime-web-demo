@@ -158,28 +158,41 @@
 
     <div class="grid-2">
       <div id="placeholder">
-        <div></div>
+        <div>
+          <div id="progress-info"></div>
+          <div class="progress progress-striped">
+            <div class="progress-bar" id="progress-bar">
+            </div>                       
+          </div> 
+        </div>
         <canvas id="img_canvas"></canvas>
       </div>
 
-      <div>
+      <div class="right">
         <div class="data">
           <div>
             <strong id="decoder_latency"></strong>
-            <span>ms</span>
+            <span id="unit"></span>
           </div>
-          <div class="title">SAM Decoder</div>
+          <div id="sam-decoder-indicator" class="title none">SAM Decoder</div>
         </div>
 
-        <form>
-          <div class="form-group ">
-            <input title="Upload Image" type="file" id="file-in" name="file-in"
-              accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*">
+        <div id="action-bar" class="disable">
+          <div class="form-group file-upload">
+            <label for="file-in" class="file-upload_label" title="Upload image">
+              <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M440-320v-326L336-542l-56-58 200-200 200 200-56 58-104-104v326h-80ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>
+            </label>
+            <input class="file-upload_input" title="Upload Image" type="file" id="file-in" name="file-in"
+              accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*" disabled>
           </div>
-        </form>
-        <div class="form-group ">
-          <button id="cut-button" type="button" class="btn btn-primary">Cut</button>
-          <button id="clear-button" type="button" class="btn btn-primary">Clear</button>
+          <div class="form-group">
+            <button id="cut-button" type="button" class="btn btn-primary" title="Cut" disabled>
+              <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M760-120 480-400l-94 94q8 15 11 32t3 34q0 66-47 113T240-80q-66 0-113-47T80-240q0-66 47-113t113-47q17 0 34 3t32 11l94-94-94-94q-15 8-32 11t-34 3q-66 0-113-47T80-720q0-66 47-113t113-47q66 0 113 47t47 113q0 17-3 34t-11 32l494 494v40H760ZM600-520l-80-80 240-240h120v40L600-520ZM240-640q33 0 56.5-23.5T320-720q0-33-23.5-56.5T240-800q-33 0-56.5 23.5T160-720q0 33 23.5 56.5T240-640Zm240 180q8 0 14-6t6-14q0-8-6-14t-14-6q-8 0-14 6t-6 14q0 8 6 14t14 6ZM240-160q33 0 56.5-23.5T320-240q0-33-23.5-56.5T240-320q-33 0-56.5 23.5T160-240q0 33 23.5 56.5T240-160Z"/></svg>
+            </button>
+            <button id="clear-button" type="button" class="btn btn-primary" title="Clear" disabled>
+              <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M120-600v-240h80v134q50-62 122.5-98T480-840q118 0 210.5 67T820-600h-87q-34-72-101-116t-152-44q-57 0-107.5 21T284-680h76v80H120Zm120 360h480L570-440 450-280l-90-120-120 160ZM200-80q-33 0-56.5-23.5T120-160v-320h80v320h560v-320h80v320q0 33-23.5 56.5T760-80H200Z"/></svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>

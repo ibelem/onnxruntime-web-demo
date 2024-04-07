@@ -42,8 +42,22 @@ const MODELS = {
 const config = getConfig();
 
 let canvas;
+let placeholder;
+let actionBar;
 let filein;
+let cut;
+let clear;
+let progressBar;
+let progressInfo;
 let decoder_latency;
+let unit;
+let samDecoderIndicator;
+
+let progress = 0;
+let samEncoderFetchProgress = 0;
+let samDecoderFetchProgress = 0;
+let samEncoderCompileProgress = 0;
+let samDecoderCompileProgress = 0;
 
 var image_embeddings;
 var points = [];
@@ -172,7 +186,9 @@ async function decoder(points, labels) {
         const feed = feedForSam(emb, points, labels);
         const start = performance.now();
         const res = await session.run(feed);
-        decoder_latency.innerText = `${(performance.now() - start).toFixed(1)}`;
+        decoder_latency.innerText = `${(performance.now() - start).toFixed(2)}`;
+        unit.innerText = 'ms';
+        samDecoderIndicator.setAttribute('class', 'title');
 
         for (let i = 0; i < points.length; i += 2) {
             ctx.fillStyle = 'blue';
@@ -242,7 +258,12 @@ async function handleImage(img) {
     points = [];
     labels = [];
     filein.disabled = true;
+    cut.disabled = true;
+    clear.disabled = true;
+    actionBar.setAttribute('class', 'disable');
     decoder_latency.innerText = "";
+    unit.innerText = '';
+    samDecoderIndicator.setAttribute('class', 'none');
     canvas.style.cursor = "wait";
     image_embeddings = undefined;
 
@@ -283,6 +304,9 @@ async function handleImage(img) {
         canvas.style.cursor = "default";
     });
     filein.disabled = false;
+    cut.disabled = false;
+    clear.disabled = false;
+    actionBar.setAttribute('class', '');
 }
 
 // Get model via Origin Private File System
@@ -309,16 +333,17 @@ async function getModelOPFS(name, url, updateModel) {
         const blob = await fileHandle.getFile();
         let buffer = await blob.arrayBuffer();
         if (buffer) {
-            // if (name == 'text_encoder') {
-            //     textEncoderFetchProgress = 20.00;
-            // } else if (name == 'unet') {
-            //     unetFetchProgress = 50.00;
-            // } else if (name == 'vae_decoder') {
-            //     vaeDecoderFetchProgress = 8.00;
-            // }
-
-            // progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
-            // updateLoadWave(progress.toFixed(2));
+            if (name.toLowerCase().indexOf('encoder') > -1) {
+                samEncoderFetchProgress = 70.00;
+                progress = samEncoderFetchProgress + samDecoderFetchProgress + samEncoderCompileProgress + samDecoderCompileProgress;
+                updateProgressBar(progress.toFixed(2));
+                progressInfo.innerHTML = `Loading SAM Encoder model · ${progress.toFixed(2)}%`;
+            } else if (name.toLowerCase().indexOf('decoder') > -1) {
+                samDecoderFetchProgress = 10.00;
+                progress = samEncoderFetchProgress + samDecoderFetchProgress + samEncoderCompileProgress + samDecoderCompileProgress;
+                updateProgressBar(progress.toFixed(2));
+                progressInfo.innerHTML = `Loading SAM Decoder model · ${progress.toFixed(2)}%`;
+            }
             return buffer;
         }
 
@@ -341,17 +366,17 @@ async function readResponse(name, response) {
         let newLoaded = loaded + value.length;
         fetchProgress = (newLoaded / contentLength) * 100;
 
-        // if (name == 'text_encoder') {
-        //     textEncoderFetchProgress = 0.20 * fetchProgress;
-        // } else if (name == 'unet') {
-        //     unetFetchProgress = 0.50 * fetchProgress;
-        // } else if (name == 'vae_decoder') {
-        //     vaeDecoderFetchProgress = 0.08 * fetchProgress;
-        // }
-
-        // progress = textEncoderFetchProgress + unetFetchProgress + vaeDecoderFetchProgress + textEncoderCompileProgress + unetCompileProgress + vaeDecoderCompileProgress;
-
-        // updateLoadWave(progress.toFixed(2));
+        if (name.toLowerCase().indexOf('encoder') > -1) {
+            samEncoderFetchProgress = 0.70 * fetchProgress;
+            progress = samEncoderFetchProgress + samDecoderFetchProgress + samEncoderCompileProgress + samDecoderCompileProgress;
+            updateProgressBar(progress.toFixed(2));
+            progressInfo.innerHTML = `Loading SAM Encoder model · ${progress.toFixed(2)}%`;
+        } else if (name.toLowerCase().indexOf('decoder') > -1) {
+            samDecoderFetchProgress = 0.10 * fetchProgress;
+            progress = samEncoderFetchProgress + samDecoderFetchProgress + samEncoderCompileProgress + samDecoderCompileProgress;
+            updateProgressBar(progress.toFixed(2));
+            progressInfo.innerHTML = `Loading SAM Decoder model · ${progress.toFixed(2)}%`;
+        }
 
         if (newLoaded > total) {
             total = newLoaded;
@@ -415,6 +440,19 @@ async function load_models(models) {
             const sess_opt = { ...opt, ...extra_opt };
             model.sess = await ort.InferenceSession.create(modelBuffer, sess_opt);
             log(`[Session Create] ${name} create time: ${(performance.now() - start).toFixed(2)}ms`);
+
+            if (name.toLowerCase().indexOf('encoder') > -1) {
+                samEncoderCompileProgress = 15;
+                progress = samEncoderFetchProgress + samDecoderFetchProgress + samEncoderCompileProgress + samDecoderCompileProgress;
+                updateProgressBar(progress.toFixed(2));
+                progressInfo.innerHTML = `SAM Encoder model compiled · ${progress.toFixed(2)}%`;
+            } else if (name.toLowerCase().indexOf('decoder') > -1) {
+                samDecoderCompileProgress = 5;
+                progress = samEncoderFetchProgress + samDecoderFetchProgress + samEncoderCompileProgress + samDecoderCompileProgress;
+                updateProgressBar(progress.toFixed(2));
+                progressInfo.innerHTML = `SAM Decoder model compiled · ${progress.toFixed(2)}%`;
+            }
+
         } catch (e) {
             log(`[Session Create] ${name} failed, ${e}`);
         }
@@ -424,14 +462,8 @@ async function load_models(models) {
 
 async function main() {
     const model = MODELS[config.model];
-
-    canvas = document.getElementById("img_canvas");
     canvas.style.cursor = "wait";
-
-    filein = document.getElementById("file-in");
-    decoder_latency = document.getElementById("decoder_latency");
-
-    document.getElementById("clear-button").addEventListener("click", () => {
+    clear.addEventListener("click", () => {
         points = [];
         labels = [];
         decoder(points, labels);
@@ -442,7 +474,7 @@ async function main() {
     await load_models(MODELS[config.model]).then(() => {
         canvas.addEventListener("click", handleClick);
         canvas.addEventListener("mousemove", handleMouseMove);
-        document.getElementById("cut-button").addEventListener("click", handleCut);
+        cut.addEventListener("click", handleCut);
 
         // image upload
         filein.onchange = function (evt) {
@@ -597,7 +629,9 @@ const getQueryValue = (name) => {
     return urlParams.get(name);
 }
 
-let placeholder;
+const updateProgressBar = (progress) => {
+    progressBar.style.width = `${progress}%`;
+}
 
 const ui = async () => {
     await setupORT();
@@ -619,7 +653,18 @@ const ui = async () => {
         backends.innerHTML = '· <a href="index.html?provider=wasm&model=sam_b_int8" title="Wasm backend">Wasm</a> · <a href="index.html?provider=webgpu&model=sam_b" title="WebGPU backend">WebGPU</a>';
     }
     await checkWebNN();
+
     placeholder = document.querySelector('#placeholder div');
+    canvas = document.querySelector("#img_canvas");
+    filein = document.querySelector("#file-in");
+    clear = document.querySelector("#clear-button");
+    cut = document.querySelector("#cut-button");
+    actionBar = document.querySelector('#action-bar');
+    progressBar = document.querySelector('#progress-bar');
+    progressInfo = document.querySelector('#progress-info');
+    decoder_latency = document.querySelector("#decoder_latency");
+    unit = document.querySelector("#unit");
+    samDecoderIndicator = document.querySelector('#sam-decoder-indicator')
 
     const fp16 = await hasFp16();
     if (config.provider == 'webgpu' && !fp16) {
