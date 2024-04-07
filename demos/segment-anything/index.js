@@ -5,8 +5,8 @@
 //
 
 // the image size on canvas
-const MAX_WIDTH = 500;
-const MAX_HEIGHT = 500;
+const MAX_WIDTH = 480;
+const MAX_HEIGHT = 480;
 
 // the image size supported by the model
 const MODEL_WIDTH = 1024;

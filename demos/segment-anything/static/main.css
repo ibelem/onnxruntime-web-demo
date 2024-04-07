@@ -76,8 +76,8 @@ body {
 
 #placeholder {
     align-content: center;
-    height: 500px;
-    width: 500px;
+    height: 480px;
+    width: 480px;
 }
 
 #placeholder.none, #placeholder .none {
