@@ -3,6 +3,7 @@
 <head>
     <meta charset='utf-8'>
     <title>ONNX Runtime Web - Stable Diffusion Turbo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="apple-touch-icon" sizes="180x180" href="./static/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="./static/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="./static/favicon/favicon-16x16.png">
@@ -16,7 +17,7 @@
 </head>
 
 <body>
-    <div class="grid-1 p1 v1 ">
+    <div class="grid-1 v1">
         <h1 class="title">
             <div id="back">
                 <a href="../../">
@@ -355,12 +356,12 @@
                 Generate Image</button>
         </div>
         <div class="grid-2 mt-1">
-            <div>
+            <div class="footerinfo">
                 <div id="status" class="log-output"></div>
                 <div id="webnnstatus"><span id="circle"></span> <span id="info">WebNN</span></div>
                 <div id="ortversion"></div>
             </div>
-            <div id="data" class="">
+            <div id="data" class="footerinfo">
                 <table>
                     <tr>
                         <th rowspan=3 id="tdTurbo">SD Turbo<br/>(ms)</th>

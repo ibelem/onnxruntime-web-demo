@@ -292,7 +292,6 @@ async function handleImage(img) {
 
     const t = await ort.Tensor.fromImage(imageImageData, { resizedWidth: MODEL_WIDTH, resizedHeight: MODEL_HEIGHT });
     const feed = (config.isSlimSam) ? { "pixel_values": t } : { "input_image": t };
-    console.log(MODELS[config.model]);
     const session = await MODELS[config.model][0].sess;
 
     const start = performance.now();
@@ -458,6 +457,7 @@ async function load_models(models) {
         }
     }
     placeholder.setAttribute('class', 'none');
+    canvas.setAttribute('class', '');
 }
 
 async function main() {
@@ -634,6 +634,19 @@ const updateProgressBar = (progress) => {
 }
 
 const ui = async () => {
+    placeholder = document.querySelector('#placeholder div');
+    canvas = document.querySelector("#img_canvas");
+    filein = document.querySelector("#file-in");
+    clear = document.querySelector("#clear-button");
+    cut = document.querySelector("#cut-button");
+    actionBar = document.querySelector('#action-bar');
+    progressBar = document.querySelector('#progress-bar');
+    progressInfo = document.querySelector('#progress-info');
+    decoder_latency = document.querySelector("#decoder_latency");
+    unit = document.querySelector("#unit");
+    samDecoderIndicator = document.querySelector('#sam-decoder-indicator');
+
+    canvas.setAttribute('class', 'none');
     await setupORT();
 
     // ort.env.wasm.wasmPaths = 'dist/';
@@ -647,24 +660,13 @@ const ui = async () => {
         backends.innerHTML = '<a href="index.html?provider=wasm&model=sam_b_int8" title="Wasm backend">Wasm</a> · <a href="index.html" title="WebNN backend">WebNN</a>';
     } else if (getQueryValue('provider') && getQueryValue('provider').toLowerCase().indexOf('wasm') > -1){
         title.innerHTML = 'Wasm';
+        samDecoderIndicator.innerHTML = 'SAM Decoder · INT8';
         backends.innerHTML = '<a href="index.html?provider=webgpu&model=sam_b" title="WebGPU backend">WebGPU</a> · <a href="index.html" title="WebNN backend">WebNN</a>';
     } else {
         title.innerHTML = 'WebNN';
         backends.innerHTML = '· <a href="index.html?provider=wasm&model=sam_b_int8" title="Wasm backend">Wasm</a> · <a href="index.html?provider=webgpu&model=sam_b" title="WebGPU backend">WebGPU</a>';
     }
     await checkWebNN();
-
-    placeholder = document.querySelector('#placeholder div');
-    canvas = document.querySelector("#img_canvas");
-    filein = document.querySelector("#file-in");
-    clear = document.querySelector("#clear-button");
-    cut = document.querySelector("#cut-button");
-    actionBar = document.querySelector('#action-bar');
-    progressBar = document.querySelector('#progress-bar');
-    progressInfo = document.querySelector('#progress-info');
-    decoder_latency = document.querySelector("#decoder_latency");
-    unit = document.querySelector("#unit");
-    samDecoderIndicator = document.querySelector('#sam-decoder-indicator')
 
     const fp16 = await hasFp16();
     if (config.provider == 'webgpu' && !fp16) {

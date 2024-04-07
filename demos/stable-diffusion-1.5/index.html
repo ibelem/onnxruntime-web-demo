@@ -13,6 +13,7 @@
 <head>
     <meta charset='utf-8'>
     <title>ONNX Runtime Web - Stable Diffusion 1.5</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="apple-touch-icon" sizes="180x180" href="./static/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="./static/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="./static/favicon/favicon-16x16.png">
@@ -20,7 +21,7 @@
 </head>
 
 <body>
-    <div class="grid-2 p1 v1">
+    <div class="title_error v1">
         <h1 class="title">
             <div id="back">
                 <a href="../../">
@@ -181,7 +182,7 @@
                     <span id="negative_token_info">75/75 tokens left</span>
                 </div>
             </div>
-            <div class="input-group grid-4 options">
+            <div class="input-group flex-2 options">
                 <div>
                     <div class="hide">
                         <label for="prompt">Seed</label>
@@ -196,7 +197,6 @@
                         </button>
                     </div>
                 </div>
-                <div></div>
                 <div></div>
             </div>
             <div class="button-group key">
@@ -267,8 +267,10 @@
                     </tr>
                 </table>
             </div>
-            <div id="webnnstatus"><span id="circle"></span> <span id="info">WebNN</span></div>
-            <div id="ortversion"></div>
+            <div class="footerinfo">
+                <div id="webnnstatus"><span id="circle"></span> <span id="info">WebNN</span></div>
+                <div id="ortversion"></div>
+            </div>
         </div>
         <div class="right">
             <div>

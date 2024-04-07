@@ -299,7 +299,7 @@ h1.title span {
     color: var(--bg);
     transform: skew(-15deg);
     border-radius: 5px;
-    text-shadow: rgba(0,0,0,.2) 1px 1px 1px;
+    text-shadow: rgba(0,0,0,.5) 1px 1px 1px;
     display: none;
 }
 
@@ -311,7 +311,8 @@ h1.title span {
     background-color: var(--main-darker);
     color: var(--bg);
     transform: skew(-15deg);
-    box-shadow: 0 3px 15px -1px var(--main-darker);
+    text-shadow: rgba(0,0,0,.8) 1px 1px 1px;
+    box-shadow: 0 3px 5px -1px var(--main-darker);
 }
  
 .mt-1 {
@@ -408,6 +409,10 @@ h1.title span {
     grid-column-gap: 10px;
     grid-row-gap: 0px;
     align-items: center;
+}
+
+.footerinfo {
+    margin-bottom: 1rem;
 }
 
 .grid-4 {
@@ -652,10 +657,6 @@ h1.title span {
 	display: none;
 }
 
-.p1 {
-    padding: 0 1.5em;
-}
-
 #error {
     align-self: center;
 }
@@ -669,7 +670,7 @@ h1.title span {
 }
 
 .v1 {
-    height: 7vh;
+    padding: 1rem 40px;
     border-bottom: 1px solid var(--border);
 }
 
@@ -799,12 +800,118 @@ h1.title span {
     display: block;
 }
 
-@media (max-width: 718px) { 
-    .left, .right {
-        padding: 10px;
+
+/* Largest devices such as desktops (1280px) */
+@media only screen and (max-width: 80em) {
+
+}
+
+/* Large devices such as laptops (1024px) */
+@media only screen and (max-width: 64em) {
+    .grid-4 {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
     }
 
-    .v1, .v9 {
+    .grid-2 {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+        row-gap: 10px;
+    }
+
+    .button-group {
+        max-width: 80%;
+    }
+
+    #data_area {
         height: auto;
+    }
+}
+
+@media only screen and (max-width: 718px) {
+ 
+    .grid-4 {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+    }
+
+    .grid-2 {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+        row-gap: 10px;
+    }
+
+    .button-group {
+        max-width: 100%;
+    }
+
+    #data_area {
+        height: auto;
+    }
+
+    #image_area {
+        margin: 10px auto 10px auto;
+        min-height: auto;
+    }
+
+    .v1 {
+        padding: 1rem;
+    }
+    
+    .v9 {
+        padding: 1rem;
+    }
+
+    .footerinfo {
+        margin-bottom: 0;
+    }
+
+    h1 {
+        font-size: 0.9rem;
+    }
+}
+
+@media only screen and (max-width: 40em) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+        row-gap: 10px;
+    }
+    .grid-4 {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr 1fr 1fr;
+    }
+
+    .button-group {
+        max-width: 100%;
+    }
+
+    #data_area {
+        height: auto;
+    }
+
+    #image_area {
+        margin: 10px auto 10px auto;
+        min-height: auto;
+    }
+
+    #data table {
+        font-size: 0.38rem;
+    }
+
+    .v1 {
+        padding: 1rem;
+    }
+    
+    .v9 {
+        padding: 1rem;
+    }
+
+    .footerinfo {
+        margin-bottom: 0;
+    }
+
+    h1 {
+        font-size: 0.9rem;
     }
 }

@@ -3,6 +3,7 @@
 <head>
   <meta charset='utf-8'>
   <title>ONNX Runtime Web - Segment Anything</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="apple-touch-icon" sizes="180x180" href="./static/favicon/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="./static/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="./static/favicon/favicon-16x16.png">
@@ -156,7 +157,7 @@
       <img id="original-image" src="EgyptianCat.png" />
     </div>
 
-    <div class="grid-2">
+    <div class="grid-2 magicpattern">
       <div id="placeholder">
         <div>
           <div id="progress-info"></div>
@@ -174,7 +175,7 @@
             <strong id="decoder_latency"></strong>
             <span id="unit"></span>
           </div>
-          <div id="sam-decoder-indicator" class="title none">SAM Decoder</div>
+          <div id="sam-decoder-indicator" class="title none">SAM Decoder · FP16</div>
         </div>
 
         <div id="action-bar" class="disable">
@@ -199,7 +200,7 @@
 
     <div id="status" class="log-output"></div>
 
-    <div>
+    <div class="footerinfo">
       <div id="webnnstatus"><span id="circle"></span> <span id="info">WebNN</span> <span id="backends"></span></div>
       <div id="ortversion"></div>
     </div>
