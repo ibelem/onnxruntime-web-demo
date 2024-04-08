@@ -59,12 +59,13 @@ let samDecoderFetchProgress = 0;
 let samEncoderCompileProgress = 0;
 let samDecoderCompileProgress = 0;
 
-var image_embeddings;
-var points = [];
-var labels = [];
-var imageImageData;
-var isClicked = false;
-var maskImageData;
+let image_embeddings;
+let points = [];
+let labels = [];
+let imageImageData;
+let isClicked = false;
+let maskImageData;
+let num_points = 1;
 
 function log(i) { 
     console.log(i); 
@@ -76,7 +77,7 @@ function log(i) {
  */
 function getConfig() {
     const query = window.location.search.substring(1);
-    var config = {
+    const config = {
         host: location.href.includes("github.io") ? "https://huggingface.co/onnxruntime-web-temp/demo/resolve/main/segment-anything" : "models",
         model: "sam_b",
         provider: "webnn",
@@ -84,7 +85,7 @@ function getConfig() {
         threads: "1",
     };
     let vars = query.split("&");
-    for (var i = 0; i < vars.length; i++) {
+    for (let i = 0; i < vars.length; i++) {
         let pair = vars[i].split("=");
         if (pair[0] in config) {
             config[pair[0]] = decodeURIComponent(pair[1]);
@@ -171,33 +172,47 @@ async function decoder(points, labels) {
     canvas.height = imageImageData.height;
     ctx.putImageData(imageImageData, 0, 0);
 
-    if (points.length > 0) {
-        // need to wait for encoder to be ready
-        if (image_embeddings === undefined) {
-            await MODELS[config.model][0].sess;
+    try {
+        if (points.length > 0) {
+            // need to wait for encoder to be ready
+            if (image_embeddings === undefined) {
+                await MODELS[config.model][0].sess;
+            }
+
+            // wait for encoder to deliver embeddings
+            const emb = await image_embeddings;
+
+            // the decoder
+            let session = MODELS[config.model][1].sess;
+
+            const feed = feedForSam(emb, points, labels);
+
+            if (labels.length != num_points && config.provider == 'webnn') {
+                // update num_points and re-create ort session for WebNN provider
+                // as WebNN doesn't support the dynamic shape model.
+                num_points = labels.length;
+                await session.release();
+                await load_models([MODELS[config.model][1]]);
+                session = MODELS[config.model][1].sess;
+            }
+
+            const start = performance.now();
+            const res = await session.run(feed);
+            decoder_latency.innerText = `${(performance.now() - start).toFixed(2)}`;
+            unit.innerText = 'ms';
+            samDecoderIndicator.setAttribute('class', 'title');
+
+            for (let i = 0; i < points.length; i += 2) {
+                ctx.fillStyle = 'blue';
+                ctx.fillRect(points[i], points[i + 1], 10, 10);
+            }
+            const mask = res.masks;
+            maskImageData = mask.toImageData();
+            ctx.globalAlpha = 0.3;
+            ctx.drawImage(await createImageBitmap(maskImageData), 0, 0);
         }
-
-        // wait for encoder to deliver embeddings
-        const emb = await image_embeddings;
-
-        // the decoder
-        const session = MODELS[config.model][1].sess;
-
-        const feed = feedForSam(emb, points, labels);
-        const start = performance.now();
-        const res = await session.run(feed);
-        decoder_latency.innerText = `${(performance.now() - start).toFixed(2)}`;
-        unit.innerText = 'ms';
-        samDecoderIndicator.setAttribute('class', 'title');
-
-        for (let i = 0; i < points.length; i += 2) {
-            ctx.fillStyle = 'blue';
-            ctx.fillRect(points[i], points[i + 1], 10, 10);
-        }
-        const mask = res.masks;
-        maskImageData = mask.toImageData();
-        ctx.globalAlpha = 0.3;
-        ctx.drawImage(await createImageBitmap(maskImageData), 0, 0);
+    } catch (ex) {
+        console.log(ex.message);
     }
 }
 
@@ -285,7 +300,7 @@ async function handleImage(img) {
     canvas.width = width;
     canvas.height = height;
     
-    var ctx = canvas.getContext("2d");
+    let ctx = canvas.getContext("2d");
     ctx.drawImage(img, 0, 0, width, height);
 
     imageImageData = ctx.getImageData(0, 0, width, height);
@@ -400,8 +415,8 @@ async function load_models(models) {
  
     for (const [id, model] of Object.entries(models)) {
         let start;
+        let name = models[id].name;
         try {
-            let name = models[id].name;
             start = performance.now();
             const opt = {
                 executionProviders: [config.provider],
@@ -424,7 +439,7 @@ async function load_models(models) {
                     deviceType: "gpu",
                 }];
                 opt.freeDimensionOverrides = {
-                    num_points: 1,
+                    num_points: num_points,
                 };
             }
 
@@ -453,7 +468,7 @@ async function load_models(models) {
             }
 
         } catch (e) {
-            log(`[Session Create] ${name} failed, ${e}`);
+            log(`[Session Create] ${name} failed, ${e.message}`);
         }
     }
     placeholder.setAttribute('class', 'none');
