@@ -27,10 +27,9 @@ let stream;
 // some dom shortcuts
 let record;
 let speech;
-let transcribe;
 let progress;
 let audio_src;
-let textarea;
+let outputText;
 
 // for audio capture
 // This enum states the current speech state.
@@ -97,16 +96,14 @@ function updateConfig() {
 
 // transcribe active
 function busy() {
-  transcribe.disabled = true;
   progress.parentNode.style.display = "block";
-  document.getElementById("outputText").value = "";
+  document.getElementById("outputText").innerHTML = "";
   document.getElementById("latency").innerText = "";
 }
 
 // transcribe done
 function ready() {
   speech.disabled = false;
-  transcribe.disabled = false;
   progress.style.width = "0%";
   progress.parentNode.style.display = "none";
 }
@@ -127,9 +124,9 @@ async function process_audio(audio, starttime, idx, pos) {
       // run inference for 30 sec
       const xa = audio.slice(idx, idx + kSteps);
       const ret = await whisper.run(xa, kSampleRate);
-      // append results to textarea
-      textarea.value += ret;
-      textarea.scrollTop = textarea.scrollHeight;
+      // append results to outputText
+      outputText.innerHTML += ret;
+      // outputText.scrollTop = outputText.scrollHeight;
       await sleep(kDelay);
       process_audio(audio, starttime, idx + kSteps, pos + 30);
     } catch (e) {
@@ -231,6 +228,7 @@ async function startRecord() {
 function stopRecord() {
   if (mediaRecorder) {
     mediaRecorder.stop();
+    transcribe_file();
     mediaRecorder = undefined;
   }
 }
@@ -297,7 +295,7 @@ async function captureAudioStream() {
     vad = new VAD(VADMode.AGGRESSIVE, kSampleRate);
 
     // clear output context
-    textarea.value = "";
+    outputText.innerHTML = "";
     sourceNode = new MediaStreamAudioSourceNode(context, {
       mediaStream: stream,
     });
@@ -398,12 +396,12 @@ async function processAudioBuffer() {
     if (!blacklistTags.includes(ret)) {
       if (subAudioChunks.length > 0) {
         subText += ret;
-        textarea.value = speechToText + subText;
+        outputText.innerHTML = speechToText + subText;
       } else {
         speechToText += ret;
-        textarea.value = speechToText;
+        outputText.innerHTML = speechToText;
       }
-      textarea.scrollTop = textarea.scrollHeight;
+      // outputText.scrollTop = outputText.scrollHeight;
     }
   }
   lastProcessingCompleted = true;
@@ -480,10 +478,8 @@ const ui = async () => {
   audio_src = document.querySelector("audio");
   record = document.getElementById("record");
   speech = document.getElementById("speech");
-  transcribe = document.getElementById("transcribe");
   progress = document.getElementById("progress");
-  textarea = document.getElementById("outputText");
-  transcribe.disabled = true;
+  outputText = document.getElementById("outputText");
   speech.disabled = true;
   progress.parentNode.style.display = "none";
   updateConfig();
@@ -515,17 +511,16 @@ const ui = async () => {
     }
   });
 
-  // click on Transcribe
-  transcribe.addEventListener("click", () => {
-    transcribe_file();
-  });
-
   // drop file
   document.getElementById("file-upload").onchange = function (evt) {
     let target = evt.target || window.event.src,
       files = target.files;
-    audio_src.src = URL.createObjectURL(files[0]);
+    if(files && files[0]) {
+      audio_src.src = URL.createObjectURL(files[0]);
+      transcribe_file();
+    }
   };
+
   log(`[Load] ONNX Runtime Execution Provider: ${provider}`);
   log("[Load] Loading model");
   try {
@@ -550,6 +545,7 @@ const ui = async () => {
         "no AudioContext, make sure domain has access to Microphone"
       );
     }
+
   } catch (e) {
     log(`[Error] ${e.message}`);
   }

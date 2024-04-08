@@ -190,6 +190,7 @@ h1.title span {
     width: 100%;
     margin: 1rem auto;
     min-height: 20vh;
+    border: 1px solid var(--border);
 }
 
 .progress {
