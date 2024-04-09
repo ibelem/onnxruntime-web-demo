@@ -273,13 +273,13 @@ h1.title span {
 
 #controls button,
 #controls label {
-  border: 1px solid var(--border);
+ border: 0px solid var(--border);
   padding: 0rem;
   margin: 0.5rem;
   border-radius: 50%;
   background-color: transparent;
-  height: 56px;
-  width: 56px;
+  height: 49px;
+  width: 49px;
   align-content: center;
   justify-content: center;
   display: inline-flex;
@@ -296,6 +296,18 @@ button svg {
 
 .on {
   display: inline-block;
+}
+
+#controls button .on svg path {
+  fill: var(--bg);
+}
+
+#controls button:hover .a-button-wave__circle--size-s {
+  background-color: var(--main-darker);
+}
+
+#controls button:hover .on svg path {
+  fill: var(--bg);
 }
 
 .off {
@@ -345,10 +357,18 @@ button svg {
 }
 
 
-.w, .a-button-wave__icon {
-  height: 56px;
-  width: 56px;
+.w {
+  height: 49px;
+  width: 49px;
   display: inline-block;
+}
+
+.a-button-wave__icon {
+  height: 49px;
+  width: 49px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .a-button-wave__circle {
@@ -360,23 +380,23 @@ button svg {
 
 .w1 {
   position: relative;
-  top: -29px;
-  left: 28px;
+  top: -25px;
+  left: 25px;
 }
 
 .a-button-wave__circle--size-s {
-  width: 56px;
-  height: 56px;
-  background-color: crimson;
+  width: 49px;
+  height: 49px;
+  background-color: var(--main);
 }
 
 .a-button-wave__circle--size-m {
   width: 72px;
   height: 72px;
   position: relative;
-  top: -86px;
-  left: 28px;
-  background-color: rgba(220, 20, 60, 0.45);
+  top: -74px;
+  left: 25px;
+  background-color: rgba(39, 94, 254, 0.45);
   opacity: 0;
   animation: animation-a-button-wave--pulse-m 2.25s 0.25s linear infinite; 
 }
@@ -385,10 +405,10 @@ button svg {
   width: 96px;
   height: 96px;
   position: relative;
-  top: -86px;
-  left: 28px;
-  transform: translate(-20px, 0px);
-  background-color: rgba(220, 20, 60, 0.3);
+  top: -136px;
+  left: 25px;
+  transform: translate(-50%, -50%);
+  background-color: rgba(39, 94, 254, 0.3);
   opacity: 0;
   animation: animation-a-button-wave--pulse-l 2.25s 0.25s linear infinite;
 }
@@ -495,7 +515,7 @@ button svg {
   background-color: var(--pink);
   color: var(--bg);
   font-size: 0.9rem;
-  border-radius: 50px;
+  border-radius: 49px;
   padding: 6px 12px;
 }
 
@@ -529,7 +549,7 @@ button svg {
 #webnnstatus.red {
   background-color: var(--pink);
   color: var(--bg);
-  border-radius: 50px;
+  border-radius: 49px;
   padding: 4px 12px;
 }
 
