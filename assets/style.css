@@ -357,6 +357,10 @@ footer ul li a:hover {
 }
 
 @media only screen and (max-width: 40em) {
+    header {
+        column-gap: 10px;
+    }
+
     #banner h1 {
         font-size: max(28px, min(5vw, 16px));
     }

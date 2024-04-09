@@ -197,7 +197,7 @@ async function startRecord() {
       }
       mediaRecorder = new MediaRecorder(stream);
     } catch (e) {
-      record.innerText = "Record";
+      // record.innerText = "Record";
       log(`[Preprocessing] Access to Microphone, ${e.message}`);
     }
   }
@@ -282,7 +282,7 @@ async function captureAudioStream() {
         audio: {
           echoCancellation: false,
           autoGainControl: false,
-          noiseSuppression: false,
+          noiseSuppression: true,
           latency: 0,
         },
       });
@@ -456,7 +456,7 @@ const setupORT = async () => {
       `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ortVersion}/dist/ort.all.min.js`
     );
     ortLink = `https://www.npmjs.com/package/onnxruntime-web/v/${ortVersion}`;
-    ortversion.innerHTML = `ONNX Runtime Web: <a href="${ortLink}">${ortVersion}</a><br/>[To do: Use WebNN EP of ORT Web 1.18 release version]`;
+    ortversion.innerHTML = `ONNX Runtime Web: <a href="${ortLink}">${ortVersion}</a><br/>[To do: Use ORT 1.18 release version]`;
   } else {
     await loadScript("onnxruntime-web", "./dist/ort.all.min.js");
     ortversion.innerHTML = `ONNX Runtime Web: Test version`;
@@ -486,27 +486,27 @@ const ui = async () => {
 
   // click on Record
   record.addEventListener("click", (e) => {
-    if (e.currentTarget.innerText == "Record") {
-      e.currentTarget.innerText = "Stop Recording";
+    if (record.getAttribute('class') === "toggle") {
+      record.setAttribute('class', '');
       startRecord();
     } else {
-      e.currentTarget.innerText = "Record";
+      record.setAttribute('class', 'toggle');
       stopRecord();
     }
   });
 
   // click on Speech
   speech.addEventListener("click", async (e) => {
-    if (e.currentTarget.innerText == "Start Speech") {
+    if (speech.getAttribute('class') === "toggle") {
       if (!lastSpeechCompleted) {
         log("[Session Run] Last speech-to-text has not completed yet, try later...");
         return;
       }
       subText = "";
-      e.currentTarget.innerText = "Stop Speech";
+      speech.setAttribute('class', '')
       await startSpeech();
     } else {
-      e.currentTarget.innerText = "Start Speech";
+      speech.setAttribute('class', 'toggle');
       await stopSpeech();
     }
   });
