@@ -556,7 +556,7 @@ const ui = async () => {
   log(`ONNX Runtime Web Execution Provider loaded · ${provider.toUpperCase()}`);
   try {
     const whisper_url = location.href.includes("github.io")
-      ? "https://huggingface.co/onnxruntime-web-temp/demo/resolve/main/whisper-base"
+      ? "https://huggingface.co/onnxruntime-web-temp/demo/resolve/main/whisper-base/"
       : "./models/";
     whisper = new Whisper(whisper_url, provider, dataType);
     await whisper.create_whisper_processor();

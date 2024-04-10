@@ -34,7 +34,7 @@ if (
   location.href.toLowerCase().indexOf("vercel.app") > -1 ||
   location.href.toLowerCase().indexOf("onnxruntime-web-demo") > -1
 ) {
-  let path = "onnxruntime-web-temp/demo/resolve/main/whisper-base";
+  let path = "../onnxruntime-web-temp/demos/whisper-base/models";
   tokenizerPath = `${path}/tokenizer`;
   processerPath = `${path}/processer`;
 } else {
