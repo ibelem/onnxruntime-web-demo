@@ -56,6 +56,14 @@ const getDateTime = () => {
     return `${m}/${d} ${hour}:${min}:${sec}`;
 };
 
+const getTime = () => {
+    let date = new Date(),
+        hour = padNumber(date.getHours(), 2),
+        min = padNumber(date.getMinutes(), 2),
+        sec = padNumber(date.getSeconds(), 2);
+    return `${hour}:${min}:${sec}`;
+};
+
 export const getOrtDevVersion = async () => {
     const response = await fetch('https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/');
     const htmlString = await response.text();
@@ -156,7 +164,32 @@ async function readResponse(response) {
 
 export function log(i) {
     console.log(i); 
-    document.getElementById('status').innerText += `\n[${getDateTime()}] ${i}`;
+    document.getElementById('status').innerHTML = 
+    `
+    <div class="item">
+        <div class="head">
+            <div>App</div>
+            <div>${getTime()}</div>
+        </div>
+        <div class="info">${i}</div>
+    </div>
+    ` +
+    document.getElementById('status').innerHTML;
+}
+
+export function logUser(i) {
+    console.log(i); 
+    document.getElementById('status').innerHTML = 
+    `
+    <div class="item">
+        <div class="head">
+            <div>App</div>
+            <div>${getTime()}</div>
+        </div>
+        <div class="info">${i}</div>
+    </div>
+    ` +
+    document.getElementById('status').innerHTML;
 }
 
 // ref: http://stackoverflow.com/questions/32633585/how-do-you-convert-to-half-floats-in-javascript

@@ -5,7 +5,7 @@
 //
 
 import { Whisper } from "./whisper.js";
-import { loadScript, removeElement, getQueryValue, getQueryVariable, randomNumber, getOrtDevVersion, webNnStatus, log, concatBuffer, concatBufferArray } from "./utils.js";
+import { loadScript, removeElement, getQueryValue, getQueryVariable, randomNumber, getOrtDevVersion, webNnStatus, log, concatBuffer, concatBufferArray, logUser } from "./utils.js";
 import VADBuilder, { VADMode, VADEvent } from "./vad/embedded.js";
 
 const kSampleRate = 16000;
@@ -25,6 +25,8 @@ let mediaRecorder;
 let stream;
 
 // some dom shortcuts
+let fileUpload;
+let labelFileUpload;
 let record;
 let speech;
 let progress;
@@ -103,9 +105,12 @@ function busy() {
 
 // transcribe done
 function ready() {
+  labelFileUpload.setAttribute('class', 'file-upload-label');
+  fileUpload.disabled = false;
+  record.disabled = false;
   speech.disabled = false;
   progress.style.width = "0%";
-  progress.parentNode.style.display = "none";
+  // progress.parentNode.style.display = "none";
 }
 
 function sleep(ms) {
@@ -119,18 +124,18 @@ async function process_audio(audio, starttime, idx, pos) {
     try {
       // update progress bar
       progress.style.width = ((idx * 100) / audio.length).toFixed(1) + "%";
-      progress.textContent = progress.style.width;
       await sleep(kDelay);
       // run inference for 30 sec
       const xa = audio.slice(idx, idx + kSteps);
       const ret = await whisper.run(xa, kSampleRate);
       // append results to outputText
       outputText.innerHTML += ret;
+      logUser(ret);
       // outputText.scrollTop = outputText.scrollHeight;
       await sleep(kDelay);
       process_audio(audio, starttime, idx + kSteps, pos + 30);
     } catch (e) {
-      log(`[Error] ${e.message}`);
+      log(`Error · ${e.message}`);
       ready();
     }
   } else {
@@ -141,11 +146,11 @@ async function process_audio(audio, starttime, idx, pos) {
       total / processing_time
     ).toFixed(1)} x realtime`;
     log(
-      `[Session Run] ${
+      `${
         document.getElementById("latency").innerText
-      }, total ${processing_time.toFixed(
+      }, Total ${processing_time.toFixed(
         1
-      )}sec processing time for ${total.toFixed(1)}sec audio`
+      )}s processing time for ${total.toFixed(1)}s audio`
     );
     ready();
   }
@@ -154,12 +159,12 @@ async function process_audio(audio, starttime, idx, pos) {
 // transcribe audio source
 async function transcribe_file() {
   if (audio_src.src == "") {
-    log("[Error] Set some Audio input");
+    log("Error · Set some Audio input");
     return;
   }
 
   busy();
-  log("[Session Run] Start transcribe ...");
+  log("Starting transcribe ...");
   try {
     const buffer = await (await fetch(audio_src.src)).arrayBuffer();
     const audioBuffer = await context.decodeAudioData(buffer);
@@ -176,7 +181,7 @@ async function transcribe_file() {
     const audio = renderedBuffer.getChannelData(0);
     process_audio(audio, performance.now(), 0, 0);
   } catch (e) {
-    log(`[Error] ${e.message}`);
+    log(`Error · ${e.message}`);
     ready();
   }
 }
@@ -198,7 +203,7 @@ async function startRecord() {
       mediaRecorder = new MediaRecorder(stream);
     } catch (e) {
       // record.innerText = "Record";
-      log(`[Preprocessing] Access to Microphone, ${e.message}`);
+      log(`Preprocessing · Access to Microphone, ${e.message}`);
     }
   }
   let recording_start = performance.now();
@@ -215,7 +220,7 @@ async function startRecord() {
   mediaRecorder.onstop = () => {
     const blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
     log(
-      `[Preprocessing] Recorded ${((performance.now() - recording_start) / 1000).toFixed(
+      `Preprocessing · Recorded ${((performance.now() - recording_start) / 1000).toFixed(
         1
       )}sec audio`
     );
@@ -347,7 +352,7 @@ async function captureAudioStream() {
 
     sourceNode.connect(streamingNode).connect(context.destination);
   } catch (e) {
-    log(`[Error] Capturing audio: ${e.message}`);
+    log(`Error · Capturing audio - ${e.message}`);
   }
 }
 
@@ -456,7 +461,7 @@ const setupORT = async () => {
       `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ortVersion}/dist/ort.all.min.js`
     );
     ortLink = `https://www.npmjs.com/package/onnxruntime-web/v/${ortVersion}`;
-    ortversion.innerHTML = `ONNX Runtime Web: <a href="${ortLink}">${ortVersion}</a><br/>[To do: Use ORT 1.18 release version]`;
+    ortversion.innerHTML = `ONNX Runtime Web: <a href="${ortLink}">${ortVersion}</a>`;
   } else {
     await loadScript("onnxruntime-web", "./dist/ort.all.min.js");
     ortversion.innerHTML = `ONNX Runtime Web: Test version`;
@@ -464,6 +469,19 @@ const setupORT = async () => {
 };
 
 const ui = async () => {
+  audio_src = document.querySelector("audio");
+  labelFileUpload = document.getElementById("label-file-upload");
+  fileUpload = document.getElementById("file-upload");
+  record = document.getElementById("record");
+  speech = document.getElementById("speech");
+  progress = document.getElementById("progress");
+  outputText = document.getElementById("outputText");
+  labelFileUpload.setAttribute('class', 'file-upload-label disabled');
+  fileUpload.disabled = true;
+  record.disabled = true;
+  speech.disabled = true;
+  // progress.parentNode.style.display = "none";
+
   await setupORT();
   ort.env.wasm.numThreads = 1;
   ort.env.wasm.simd = true;
@@ -474,45 +492,37 @@ const ui = async () => {
     title.innerHTML = "WebGPU";
   }
   await checkWebNN();
-
-  audio_src = document.querySelector("audio");
-  record = document.getElementById("record");
-  speech = document.getElementById("speech");
-  progress = document.getElementById("progress");
-  outputText = document.getElementById("outputText");
-  speech.disabled = true;
-  progress.parentNode.style.display = "none";
   updateConfig();
 
   // click on Record
   record.addEventListener("click", (e) => {
-    if (record.getAttribute('class') === "toggle") {
-      record.setAttribute('class', '');
+    if (record.getAttribute('class').indexOf("active") == -1) {
+      record.setAttribute('class', 'active');
       startRecord();
     } else {
-      record.setAttribute('class', 'toggle');
+      record.setAttribute('class', '');
       stopRecord();
     }
   });
 
   // click on Speech
   speech.addEventListener("click", async (e) => {
-    if (speech.getAttribute('class') === "toggle") {
+    if (speech.getAttribute('class').indexOf("active") == -1) {
       if (!lastSpeechCompleted) {
         log("[Session Run] Last speech-to-text has not completed yet, try later...");
         return;
       }
       subText = "";
-      speech.setAttribute('class', '')
+      speech.setAttribute('class', 'active')
       await startSpeech();
     } else {
-      speech.setAttribute('class', 'toggle');
+      speech.setAttribute('class', '');
       await stopSpeech();
     }
   });
 
   // drop file
-  document.getElementById("file-upload").onchange = function (evt) {
+  fileUpload.onchange = function (evt) {
     let target = evt.target || window.event.src,
       files = target.files;
     if(files && files[0]) {
@@ -521,8 +531,7 @@ const ui = async () => {
     }
   };
 
-  log(`[Load] ONNX Runtime Execution Provider: ${provider}`);
-  log("[Load] Loading model");
+  log(`ONNX Runtime Web Execution Provider loaded · ${provider.toUpperCase()}`);
   try {
     const whisper_url = location.href.includes("github.io")
       ? "https://huggingface.co/onnxruntime-web-temp/demo/resolve/main/whisper-base"
@@ -531,7 +540,7 @@ const ui = async () => {
     await whisper.create_whisper_processor();
     await whisper.create_whisper_tokenizer();
     await whisper.create_ort_sessions();
-    log("[Session Create] Ready to transcribe");
+    log("Ready to transcribe ...");
     ready();
     context = new AudioContext({
       sampleRate: kSampleRate,
@@ -547,7 +556,7 @@ const ui = async () => {
     }
 
   } catch (e) {
-    log(`[Error] ${e.message}`);
+    log(`Error · ${e.message}`);
   }
 };
 

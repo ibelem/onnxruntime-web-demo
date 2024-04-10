@@ -631,7 +631,7 @@ const setupORT = async () => {
     if (ortVersion && ortVersion.length > 4) {
         await loadScript('onnxruntime-web', `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ortVersion}/dist/ort.all.min.js`);
         ortLink = `https://www.npmjs.com/package/onnxruntime-web/v/${ortVersion}`
-        ortversion.innerHTML = `ONNX Runtime Web: <a href="${ortLink}">${ortVersion}</a><br/>[To do: Use ORT 1.18 release version]`;
+        ortversion.innerHTML = `ONNX Runtime Web: <a href="${ortLink}">${ortVersion}</a>`;
     } else {
         await loadScript('onnxruntime-web', './dist/ort.all.min.js');
         ortversion.innerHTML = `ONNX Runtime Web: Test version`;

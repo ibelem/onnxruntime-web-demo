@@ -29,9 +29,9 @@ export class Whisper {
         ort.env.wasm.simd = true;
 
         this.models = {
-            'encoder': { url: 'whisper_base_encoder_lm.onnx', sess: null },
-            'decoder': { url: 'whisper_base_decoder_static_non_kvcache_lm.onnx', sess: null },
-            'decoder_cached': { url: 'whisper_base_decoder_static_kvcache_128_lm.onnx', sess: null },
+            'encoder': { url: 'whisper_base_encoder_lm.onnx', sess: null, size: '39.3MB', title: 'Whisper Base Eecoder' },
+            'decoder': { url: 'whisper_base_decoder_static_non_kvcache_lm.onnx', sess: null, size: '149MB', title: 'Whisper Base Decoder'  },
+            'decoder_cached': { url: 'whisper_base_decoder_static_kvcache_128_lm.onnx', sess: null, size: '143MB', title: 'Whisper Base Decoder (Cached)' },
         };
 
         this.max_sequence_length = 128;
@@ -69,14 +69,15 @@ export class Whisper {
                 } else {
                     url = url.replace('.onnx', '_layernorm.onnx');
                 }
+                log(`Loading ${this.models[name]['title']} · ${this.models[name]['size']}`);
                 const modelBuffer = await getModelOPFS(`${name}_${this.dataType}`, url, false);
-                log(`[Load] ${url} loaded`);
-                log(`[Session Create] Creating ${name}`);
+                log(`${this.models[name]['title']} loaded`);
+                log(`Creating session for ${this.models[name]['title']}`);
                 this.models[name]['sess'] = await ort.InferenceSession.create(modelBuffer, options);
-                log(`[Session Create] ${name} session created`);
+                log(`${this.models[name]['title']} session created`);
 
             } catch (e) {
-                log(`[Error] ${e.message}`);
+                log(`Error · ${e.message}`);
             }
         };
     }
