@@ -56,7 +56,11 @@
   --border: rgb(230, 230, 230, 1);
   --border-2: rgb(230, 230, 230, 0.6);
   --green: rgba(1, 212, 73, 1);
-  --pink: rgb(255, 0, 129);
+  --pink: rgba(255, 0, 129, 1);
+  --green-01: rgba(1, 212, 73, 0.1);
+  --pink-01: rgba(255, 0, 129, 0.1);
+  --green-02: rgba(1, 212, 73, 0.2);
+  --pink-02: rgba(255, 0, 129, 0.2);
 }
 
 * {
@@ -122,41 +126,22 @@ body {
   display: inline-block;
 }
 
-.log-output::-webkit-scrollbar {
+.log-output::-webkit-scrollbar, #outputText::-webkit-scrollbar {
   width: 3px !important;
   height: 3px !important;
 }
 
-.log-output::-webkit-scrollbar-track {
+.log-output::-webkit-scrollbar-track, #outputText::-webkit-scrollbar-track {
   background: var(--main-001);
 }
 
-.log-output::-webkit-scrollbar-thumb {
+.log-output::-webkit-scrollbar-thumb, #outputText::-webkit-scrollbar-thumb {
   background-color: var(--scroll);
   border-radius: 5px;
   border: 3px solid transparent;
 }
 
-.log-output:hover::-webkit-scrollbar-thumb {
-  background-color: var(--scroll-2);
-}
-
-textarea::-webkit-scrollbar {
-  width: 3px !important;
-  height: 3px !important;
-}
-
-textarea::-webkit-scrollbar-track {
-  background: var(--main-001);
-}
-
-textarea::-webkit-scrollbar-thumb {
-  background-color: var(--scroll);
-  border-radius: 5px;
-  border: 3px solid transparent;
-}
-
-textarea:hover::-webkit-scrollbar-thumb {
+.log-output:hover::-webkit-scrollbar-thumb, #outputText::-webkit-scrollbar-thumb {
   background-color: var(--scroll-2);
 }
 
@@ -206,16 +191,81 @@ h1.title span {
 
 #outputText {
     width: 100%;
-    margin: 10px auto;
-    min-height: 20vh;
+    margin: 10px auto 0 auto;
+    height: 36vh;
     border: 1px solid var(--border);
     padding: 10px;
-    font-size: 16px;
+    font-size: 18px;
+    border-radius: 5px;
+    overflow-y: scroll;
+}
+
+#result-show.show #outputText {
+  border-bottom-right-radius: 0;
+}
+
+#action-bar {
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  justify-content: flex-end;
+  margin: -1px 0 0 0;
+}
+
+#result-show.show #action-bar {
+  display: flex;
+}
+
+#action-bar>div {
+  border: 1px solid var(--border);
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-top: 0px solid var(--border);
+}
+
+#action-bar button {
+  border: 0px;
+  background-color: transparent;
+  padding: 4px 20px 0 20px;
+}
+
+#action-bar button:hover {
+  cursor: pointer;
+}
+
+#action-bar button svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+#action-bar svg path {
+  fill: var(--border);
+}
+
+#action-bar button:hover svg path {
+  fill: var(--green);
+}
+
+#latency {
+  position: relative;
+  top: -20px;
+  left: 10px;
+  font-size: 14px;
+  display: none;
+  padding: 2px 6px;
+  background-color: var(--pink);
+  color: var(--bg);
+  transform: skew(-15deg);
+  border-radius: 3px;
+}
+
+#result-show.show #latency {
+  display: inline-block;
 }
 
 .progress {
-  background-color: var(--main-005);
   border-radius: 10px;
+  margin-top: -1px;
 }
 
 #progress-info {
@@ -225,7 +275,7 @@ h1.title span {
 }
 
 .progress-bar {
-  height: 3px;
+  height: 1px;
   border-radius: 10px;
   width: 0%;
   transition: 0.4s linear;
@@ -244,6 +294,41 @@ h1.title span {
     transparent 75%,
     transparent
   );
+}
+
+.p-fetch-compile {
+  position: relative;
+  top:-2px;
+}
+
+.p-bar {
+  width: 100%;
+  height: 2px;
+  background-color: var(--border);
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.p-bar-inner {
+  height: 100%;
+  background-color: var(--main);
+  width: 0;
+  transition: width 0.3s ease-in-out;
+}
+
+.p-fetch-compile:hover {
+  color: var(--main);
+}
+
+.p-fetch-compile:hover .p-bar-inner {
+  height: 2px;
+  background-color: var(--main);
+}
+
+.p-bar-label {
+  margin: 10px;
+  font-size: 12px;
+  text-align: center;
 }
 
 .right {
@@ -317,7 +402,6 @@ h1.title span {
   right: 0;
   transform: scale(0);
   transform-origin: center;
-  -webkit-backface-visibility: hidden;
   z-index: -1;
   background-color: var(--main);
 }
@@ -434,12 +518,12 @@ button svg {
   display: flex;
   flex-direction: column-reverse;
   overflow-y: scroll;
-  height: 82vh;
+  height: 78vh;
   width: 20vw;
 }
 
 .log-output:hover {
-  border: 1px solid var(--main-04);
+  border: 1px solid var(--border-2);
   background-color: var(--bg-8);
 }
 
@@ -533,8 +617,12 @@ button svg {
   animation: bounce2 2s ease infinite;
 }
 
-.item:hover {
-  border: 1px solid var(--main-06);
+.item.app:hover {
+  border: 1px solid var(--pink);
+}
+
+.item.user:hover {
+  border: 1px solid var(--green);
 }
 
 .item .head {
@@ -561,6 +649,29 @@ button svg {
   font-size: 14px;
   text-align: left;
   margin-top: 10px;
+}
+
+.item .head span {
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.item.app .head span {
+  background-color: var(--pink-01);
+}
+
+.item.user .head span {
+  background-color: var(--green-01);
+}
+
+.item.app:hover .head  span {
+  background-color: var(--pink);
+  color: var(--bg);
+}
+
+.item.user:hover .head  span {
+  background-color: var(--green);
+  color: var(--bg);
 }
 
 #webnnstatus {

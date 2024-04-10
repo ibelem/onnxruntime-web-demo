@@ -19,6 +19,10 @@ export const removeElement = async (id) => {
     }
 }
 
+export const sleep = (ms) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export const getQueryValue = (name) => {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(name);
@@ -107,6 +111,29 @@ export const webNnStatus = async () => {
     }
 };
 
+export let progressBarInner;
+export let progressBarLabel;
+
+export let loadProgress = 0;
+export let encoderFetchProgress = 0;
+export let decoderFetchProgress = 0;
+export let decoderCachedFetchProgress = 0;
+export let encoderCompileProgress = 0;
+export let decoderCompileProgress = 0;
+export let decoderCachedCompileProgress = 0;
+
+export const updateEncoderCompileProgress = (value) => { encoderCompileProgress = value; }
+export const updateDecoderCompileProgress = (value) => { decoderCompileProgress = value; }
+export const updateDecoderCachedCompileProgress = (value) => { decoderCachedCompileProgress = value; }
+export const updateLoadProgress = (value) => { loadProgress = value; }
+
+progressBarInner = document.getElementById("p-bar-inner");
+progressBarLabel = document.getElementById("p-bar-label");
+
+export const updateProgressBar = (progress) => {
+    progressBarInner.style.width = `${progress}%`;
+}
+
 // Get model via Origin Private File System
 export async function getModelOPFS(name, url, updateModel) {
     const root = await navigator.storage.getDirectory();
@@ -114,7 +141,7 @@ export async function getModelOPFS(name, url, updateModel) {
 
     async function updateFile() {
         const response = await fetch(url);
-        const buffer = await readResponse(response);
+        const buffer = await readResponse(name, response);
         fileHandle = await root.getFileHandle(name, { create: true });
         const writable = await fileHandle.createWritable();
         await writable.write(buffer);
@@ -129,13 +156,33 @@ export async function getModelOPFS(name, url, updateModel) {
     try {
         fileHandle = await root.getFileHandle(name);
         const blob = await fileHandle.getFile();
-        return await blob.arrayBuffer();
+        let buffer = await blob.arrayBuffer();
+        if (buffer) {
+            if (name.toLowerCase().indexOf('decoder_cached_') > -1) {
+                decoderCachedFetchProgress = 40.00;
+                loadProgress = encoderFetchProgress + decoderFetchProgress + encoderCompileProgress + decoderCompileProgress + decoderCachedFetchProgress + decoderCachedCompileProgress;
+                updateProgressBar(loadProgress.toFixed(2));
+                progressBarLabel.innerHTML = `Loading Whisper Base Decoder (KV-Cache) · ${loadProgress.toFixed(2)}%`;
+            } else if (name.toLowerCase().indexOf('decoder_') > -1) {
+                decoderFetchProgress = 40.00;
+                loadProgress = encoderFetchProgress + decoderFetchProgress + encoderCompileProgress + decoderCompileProgress + decoderCachedFetchProgress + decoderCachedCompileProgress;
+                updateProgressBar(loadProgress.toFixed(2));
+                progressBarLabel.innerHTML = `Loading Whisper Base Decoder · ${loadProgress.toFixed(2)}%`;
+            } else if (name.toLowerCase().indexOf('encoder_') > -1) {
+                encoderFetchProgress = 10.00;
+                loadProgress = encoderFetchProgress + decoderFetchProgress + encoderCompileProgress + decoderCompileProgress + decoderCachedFetchProgress + decoderCachedCompileProgress;
+                updateProgressBar(loadProgress.toFixed(2));
+                progressBarLabel.innerHTML = `Loading Whisper Base Encoder · ${loadProgress.toFixed(2)}%`;
+            }
+
+        return buffer;
+        }
     } catch (e) {
         return await updateFile();
     }
 }
 
-async function readResponse(response) {
+async function readResponse(name, response) {
     const contentLength = response.headers.get('Content-Length');
     let total = parseInt(contentLength ?? '0');
     let buffer = new Uint8Array(total);
@@ -147,6 +194,25 @@ async function readResponse(response) {
         if (done) return;
 
         let newLoaded = loaded + value.length;
+        let fetchProgress = (newLoaded / contentLength) * 100;
+
+        if (name.toLowerCase().indexOf('decoder_cached_') > -1) {
+            decoderCachedFetchProgress = 0.40 * fetchProgress;
+            loadProgress = encoderFetchProgress + decoderFetchProgress + encoderCompileProgress + decoderCompileProgress + decoderCachedFetchProgress + decoderCachedCompileProgress;
+            updateProgressBar(loadProgress.toFixed(2));
+            progressBarLabel.innerHTML = `Loading Whisper Base Decoder (KV-Cache) · ${loadProgress.toFixed(2)}%`;
+        } else if (name.toLowerCase().indexOf('decoder_') > -1) {
+            decoderFetchProgress = 0.40 * fetchProgress;
+            loadProgress = encoderFetchProgress + decoderFetchProgress + encoderCompileProgress + decoderCompileProgress + decoderCachedFetchProgress + decoderCachedCompileProgress;
+            updateProgressBar(loadProgress.toFixed(2));
+            progressBarLabel.innerHTML = `Loading Whisper Base Decoder · ${loadProgress.toFixed(2)}%`;
+        } else if (name.toLowerCase().indexOf('encoder') > -1) {
+            encoderFetchProgress = 0.10 * fetchProgress;
+            loadProgress = encoderFetchProgress + decoderFetchProgress + encoderCompileProgress + decoderCompileProgress + decoderCachedFetchProgress + decoderCachedCompileProgress;
+            updateProgressBar(loadProgress.toFixed(2));
+            progressBarLabel.innerHTML = `Loading Whisper Base Encoder · ${loadProgress.toFixed(2)}%`;
+        } 
+
         if (newLoaded > total) {
             total = newLoaded;
             let newBuffer = new Uint8Array(total);
@@ -166,9 +232,9 @@ export function log(i) {
     console.log(i); 
     document.getElementById('status').innerHTML = 
     `
-    <div class="item">
+    <div class="item app">
         <div class="head">
-            <div>App</div>
+            <div><span>App</span></div>
             <div>${getTime()}</div>
         </div>
         <div class="info">${i}</div>
@@ -181,9 +247,9 @@ export function logUser(i) {
     console.log(i); 
     document.getElementById('status').innerHTML = 
     `
-    <div class="item">
+    <div class="item user">
         <div class="head">
-            <div>App</div>
+            <div><span>User</span></div>
             <div>${getTime()}</div>
         </div>
         <div class="info">${i}</div>

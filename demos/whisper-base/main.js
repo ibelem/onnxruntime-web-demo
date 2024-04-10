@@ -5,7 +5,7 @@
 //
 
 import { Whisper } from "./whisper.js";
-import { loadScript, removeElement, getQueryValue, getQueryVariable, randomNumber, getOrtDevVersion, webNnStatus, log, concatBuffer, concatBufferArray, logUser } from "./utils.js";
+import { loadScript, removeElement, getQueryValue, getOrtDevVersion, webNnStatus, log, concatBuffer, concatBufferArray, logUser } from "./utils.js";
 import VADBuilder, { VADMode, VADEvent } from "./vad/embedded.js";
 
 const kSampleRate = 16000;
@@ -30,6 +30,9 @@ let labelFileUpload;
 let record;
 let speech;
 let progress;
+let resultShow;
+let latency;
+let copy;
 let audio_src;
 let outputText;
 
@@ -99,8 +102,9 @@ function updateConfig() {
 // transcribe active
 function busy() {
   progress.parentNode.style.display = "block";
-  document.getElementById("outputText").innerHTML = "";
-  document.getElementById("latency").innerText = "";
+  outputText.innerText = "";
+  latency.innerText = "";
+  resultShow.setAttribute('class', '');
 }
 
 // transcribe done
@@ -129,7 +133,7 @@ async function process_audio(audio, starttime, idx, pos) {
       const xa = audio.slice(idx, idx + kSteps);
       const ret = await whisper.run(xa, kSampleRate);
       // append results to outputText
-      outputText.innerHTML += ret;
+      outputText.innerText += ret;
       logUser(ret);
       // outputText.scrollTop = outputText.scrollHeight;
       await sleep(kDelay);
@@ -142,13 +146,14 @@ async function process_audio(audio, starttime, idx, pos) {
     // done with audio buffer
     const processing_time = (performance.now() - starttime) / 1000;
     const total = audio.length / kSampleRate;
-    document.getElementById("latency").innerText = `${(
+    resultShow.setAttribute('class', 'show');
+    latency.innerText = `${(
       total / processing_time
     ).toFixed(1)} x realtime`;
     log(
       `${
-        document.getElementById("latency").innerText
-      }, Total ${processing_time.toFixed(
+        latency.innerText
+      }, total ${processing_time.toFixed(
         1
       )}s processing time for ${total.toFixed(1)}s audio`
     );
@@ -211,10 +216,11 @@ async function startRecord() {
 
   mediaRecorder.ondataavailable = (e) => {
     chunks.push(e.data);
-    document.getElementById("latency").innerText = `recorded: ${(
+    resultShow.setAttribute('class', 'show');
+    latency.innerText = `Recorded: ${(
       (performance.now() - recording_start) /
       1000
-    ).toFixed(1)}sec`;
+    ).toFixed(1)}s`;
   };
 
   mediaRecorder.onstop = () => {
@@ -300,7 +306,7 @@ async function captureAudioStream() {
     vad = new VAD(VADMode.AGGRESSIVE, kSampleRate);
 
     // clear output context
-    outputText.innerHTML = "";
+    outputText.innerText = "";
     sourceNode = new MediaStreamAudioSourceNode(context, {
       mediaStream: stream,
     });
@@ -387,11 +393,11 @@ async function processAudioBuffer() {
   if (processBuffer.length > kSampleRate * 0.16) {
     const start = performance.now();
     const ret = await whisper.run(processBuffer, kSampleRate);
-    console.log(
+    logUser(
       `${processBuffer.length / kSampleRate} sec audio processing time: ${(
         (performance.now() - start) /
         1000
-      ).toFixed(2)} sec`
+      ).toFixed(2)}s`
     );
     console.log("Result: ", ret);
     // TODO? throttle the un-processed audio chunks?
@@ -401,10 +407,12 @@ async function processAudioBuffer() {
     if (!blacklistTags.includes(ret)) {
       if (subAudioChunks.length > 0) {
         subText += ret;
-        outputText.innerHTML = speechToText + subText;
+        outputText.innerText = speechToText + subText;
+        logUser(ret);
       } else {
         speechToText += ret;
-        outputText.innerHTML = speechToText;
+        outputText.innerText = speechToText;
+        logUser(ret);
       }
       // outputText.scrollTop = outputText.scrollHeight;
     }
@@ -476,6 +484,10 @@ const ui = async () => {
   speech = document.getElementById("speech");
   progress = document.getElementById("progress");
   outputText = document.getElementById("outputText");
+  resultShow = document.getElementById("result-show");
+  latency = document.getElementById("latency");
+  copy = document.getElementById("copy");
+
   labelFileUpload.setAttribute('class', 'file-upload-label disabled');
   fileUpload.disabled = true;
   record.disabled = true;
@@ -530,6 +542,16 @@ const ui = async () => {
       transcribe_file();
     }
   };
+
+  copy.addEventListener('click', async (e) => {
+    try {
+      await navigator.clipboard.writeText(outputText.innerText);
+      logUser('The speech to text copied to clipboard');
+    } catch (err) {
+      logUser('Failed to copy');
+      console.error('Failed to copy: ', err);
+    }
+  })
 
   log(`ONNX Runtime Web Execution Provider loaded · ${provider.toUpperCase()}`);
   try {

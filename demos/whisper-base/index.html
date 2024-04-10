@@ -160,12 +160,22 @@
     </div>
     <div class="v9 grid-2-41">
         <div class="main">
-            <div id="outputText" class="form-control"></div>
-            <div class="progress">
-                <div id="progress" class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%"
-                    aria-valuemin="0" aria-valuemax="100"></div>
+            <div id="result-show">
+                <div id="outputText" class="form-control"></div>
+                <div id="action-bar">
+                    <div>
+                        <button id="copy" class="" type="button" title="Copy to clipboard">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z"/></svg>
+                        </button> 
+                    </div>   
+                </div>
+            
+                <div class="progress">
+                    <div id="progress" class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%"
+                        aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div id="latency"></div>
             </div>
-            <div id="latency"></div>
 
             <div id="controls">
 
@@ -221,6 +231,12 @@
         </div>
         <div id="sidebar">
             <div id="status" class="log-output"></div>
+            <div class="p-fetch-compile">
+                <div class="p-bar">
+                    <div id="p-bar-inner" class="p-bar-inner"></div>
+                </div>
+                <div class="p-bar-label" id="p-bar-label">0%</div>
+            </div>
             <div class="footerinfo">
                 <div id="webnnstatus"><span id="circle"></span> <span id="info">WebNN</span></div>
                 <div id="ortversion"></div>
