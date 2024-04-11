@@ -57,7 +57,7 @@ export class Whisper {
         sess: null,
         fp16size: "39.3MB",
         fp32size: "78.5MB",
-        title: "Whisper Base Eecoder",
+        title: "Whisper Base Encoder",
       },
       decoder: {
         url: "whisper_base_decoder_static_non_kvcache_lm.onnx",
