@@ -250,6 +250,7 @@ function stopRecord() {
 
 // start speech
 async function startSpeech() {
+  resultShow.setAttribute('class', '');
   speechState = SpeechStates.PROCESSING;
   await captureAudioStream();
   if (streamingNode != null) {
@@ -398,11 +399,19 @@ async function processAudioBuffer() {
   if (processBuffer.length > kSampleRate * 0.16) {
     const start = performance.now();
     const ret = await whisper.run(processBuffer, kSampleRate);
+
+    const processing_time = (performance.now() - start) / 1000;
+    const total = processBuffer.length / kSampleRate;
+
+    resultShow.setAttribute('class', 'show');
+    latency.innerText = `${(
+      total / processing_time
+    ).toFixed(1)} x realtime`;
+
     logUser(
-      `${processBuffer.length / kSampleRate}s audio processing time: ${(
-        (performance.now() - start) /
-        1000
-      ).toFixed(2)}s`
+      `${
+        latency.innerText
+      }, ${total}s audio processing time: ${processing_time.toFixed(2)}s`
     );
     console.log("Result: ", ret);
     // TODO? throttle the un-processed audio chunks?
