@@ -17,7 +17,7 @@ const kDelay = 100;
 let whisper;
 
 let provider = "webnn";
-let dataType = "float32";
+let dataType = "float16";
 
 // audio context
 var context = null;
@@ -94,7 +94,7 @@ function updateConfig() {
       dataType = pair[1];
     }
     if (pair[0] == "maxChunkLength") {
-      maxChunkLength = parseInt(pair[1]);
+      maxChunkLength = parseFloat(pair[1]);
     }
   }
 }
@@ -123,6 +123,7 @@ function sleep(ms) {
 
 // process audio buffer
 async function process_audio(audio, starttime, idx, pos) {
+  
   if (idx < audio.length) {
     // not done
     try {
@@ -163,8 +164,9 @@ async function process_audio(audio, starttime, idx, pos) {
 
 // transcribe audio source
 async function transcribe_file() {
+  resultShow.setAttribute('class', '');
   if (audio_src.src == "") {
-    log("Error · Set some Audio input");
+    log("Error · No audio input, please record the audio");
     return;
   }
 
@@ -193,22 +195,24 @@ async function transcribe_file() {
 
 // start recording
 async function startRecord() {
+  resultShow.setAttribute('class', '');
   if (mediaRecorder === undefined) {
     try {
       if (!stream) {
         stream = await navigator.mediaDevices.getUserMedia({
           audio: {
-            echoCancellation: false,
-            autoGainControl: false,
-            noiseSuppression: false,
-            latency: 0,
+            echoCancellation: true,
+            autoGainControl: true,
+            noiseSuppression: true,
+            channelCount: 1,
+            latency: 0
           },
         });
       }
       mediaRecorder = new MediaRecorder(stream);
     } catch (e) {
       // record.innerText = "Record";
-      log(`Preprocessing · Access to Microphone, ${e.message}`);
+      log(`Preprocessing · Access to microphone, ${e.message}`);
     }
   }
   let recording_start = performance.now();
@@ -228,7 +232,7 @@ async function startRecord() {
     log(
       `Preprocessing · Recorded ${((performance.now() - recording_start) / 1000).toFixed(
         1
-      )}sec audio`
+      )}s audio`
     );
     audio_src.src = window.URL.createObjectURL(blob);
   };
@@ -291,10 +295,11 @@ async function captureAudioStream() {
     if (!stream) {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          echoCancellation: false,
-          autoGainControl: false,
+          echoCancellation: true,
+          autoGainControl: true,
           noiseSuppression: true,
-          latency: 0,
+          channelCount: 1,
+          latency: 0
         },
       });
     }
@@ -394,7 +399,7 @@ async function processAudioBuffer() {
     const start = performance.now();
     const ret = await whisper.run(processBuffer, kSampleRate);
     logUser(
-      `${processBuffer.length / kSampleRate} sec audio processing time: ${(
+      `${processBuffer.length / kSampleRate}s audio processing time: ${(
         (performance.now() - start) /
         1000
       ).toFixed(2)}s`
@@ -521,7 +526,7 @@ const ui = async () => {
   speech.addEventListener("click", async (e) => {
     if (speech.getAttribute('class').indexOf("active") == -1) {
       if (!lastSpeechCompleted) {
-        log("[Session Run] Last speech-to-text has not completed yet, try later...");
+        log("Last speech-to-text has not completed yet, try later...");
         return;
       }
       subText = "";
@@ -555,6 +560,7 @@ const ui = async () => {
 
   log(`ONNX Runtime Web Execution Provider loaded · ${provider.toUpperCase()}`);
   try {
+    context = new AudioContext({ sampleRate: kSampleRate });
     const whisper_url = location.href.includes("github.io")
       ? "https://huggingface.co/onnxruntime-web-temp/demo/resolve/main/whisper-base/"
       : "./models/";

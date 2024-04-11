@@ -55,19 +55,22 @@ export class Whisper {
       encoder: {
         url: "whisper_base_encoder_lm.onnx",
         sess: null,
-        size: "39.3MB",
+        fp16size: "39.3MB",
+        fp32size: "78.5MB",
         title: "Whisper Base Eecoder",
       },
       decoder: {
         url: "whisper_base_decoder_static_non_kvcache_lm.onnx",
         sess: null,
-        size: "149MB",
+        fp16size: "149MB",
+        fp32size: "298MB",
         title: "Whisper Base Decoder",
       },
       decoder_cached: {
         url: "whisper_base_decoder_static_kvcache_128_lm.onnx",
         sess: null,
-        size: "143MB",
+        fp16size: "143MB",
+        fp32size: "287MB",
         title: "Whisper Base Decoder (Cached)",
       },
     };
@@ -108,12 +111,16 @@ export class Whisper {
         let url = this.url + this.models[name]["url"];
         if (this.dataType == "float16") {
           url = url.replace(".onnx", "_fp16_layernorm.onnx");
+          log(
+            `Loading ${this.models[name]["title"]} · ${this.dataType} · ${this.models[name]["fp16size"]}`
+          );
         } else {
           url = url.replace(".onnx", "_layernorm.onnx");
+          log(
+            `Loading ${this.models[name]["title"]} · ${this.dataType} · ${this.models[name]["fp32size"]}`
+          );
         }
-        log(
-          `Loading ${this.models[name]["title"]} · ${this.models[name]["size"]}`
-        );
+
         const modelBuffer = await getModelOPFS(
           `${name}_${this.dataType}`,
           url,
