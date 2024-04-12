@@ -50,7 +50,7 @@
   --main-06: rgba(39, 94, 254, 0.6);
   --scroll: rgb(0, 0, 0, 0.1);
   --scroll-2: rgb(0, 0, 0, 0.2);
-  --main: rgb(39, 94, 254);
+  --main: rgba(39, 94, 254, 1);
   --main-dark: rgb(24, 79, 238, 1);
   --main-darker: rgb(20, 74, 204, 1);
   --border: rgb(230, 230, 230, 1);
@@ -86,7 +86,6 @@ body {
 
 .main {
   width: 100%;
-  padding: 10px 0;
 }
 
 #sidebar {
@@ -95,6 +94,19 @@ body {
 
 #record_play {
   display: none;
+}
+
+.container {
+	display: flex;
+  position: relative;
+  top: -40vh;
+  justify-content: center;
+  z-index: -1;
+}
+
+#container {
+  height: 40vh;
+  width: 99.6%;
 }
 
 #placeholder {
@@ -191,8 +203,8 @@ h1.title span {
 
 #outputText {
     width: 100%;
-    margin: 10px auto 0 auto;
-    height: 36vh;
+    margin: 0 auto 0 auto;
+    height: 50vh;
     border: 1px solid var(--border);
     padding: 10px;
     font-size: 18px;
@@ -209,7 +221,7 @@ h1.title span {
   justify-content: space-between;
   align-items: center;
   justify-content: flex-end;
-  margin: -1px 0 0 0;
+  margin: -40vh 0 0 0;
 }
 
 #result-show.show #action-bar {
@@ -265,6 +277,10 @@ h1.title span {
 
 .progress {
   border-radius: 10px;
+  margin-top: -40vh;
+}
+
+#result-show.show .progress {
   margin-top: -1px;
 }
 
@@ -760,7 +776,7 @@ button svg {
   grid-template-rows: 1fr;
   grid-column-gap: 10px;
   grid-row-gap: 0px;
-  align-items: center;
+  align-items: start;
   justify-items: center;
   margin: 1rem 0;
 }

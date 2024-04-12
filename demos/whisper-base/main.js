@@ -7,6 +7,32 @@
 import { Whisper } from "./whisper.js";
 import { loadScript, removeElement, getQueryValue, getOrtDevVersion, webNnStatus, log, concatBuffer, concatBufferArray, logUser } from "./utils.js";
 import VADBuilder, { VADMode, VADEvent } from "./vad/embedded.js";
+import AudioMotionAnalyzer from './static/js/audioMotion-analyzer.js?min';
+
+
+const options = {
+  mode: 10,
+  channelLayout: 'single',
+  fillAlpha: .25,
+  frequencyScale: 'bark',
+  gradientLeft: 'prism',
+  gradientRight: 'prism',
+  linearAmplitude: true,
+  linearBoost: 1.8,
+  lineWidth: 1,
+  ledBars: false,
+  maxFreq: 20000,
+  minFreq: 20,
+  mirror: 0,
+  radial: false,
+  reflexRatio: 0,
+  showPeaks: true,
+  weightingFilter: 'D',
+  showScaleX: false,
+  overlay: true,
+  showBgColor:true, 
+  bgAlpha: 0
+};
 
 const kSampleRate = 16000;
 const kIntervalAudio_ms = 1000;
@@ -35,6 +61,8 @@ let latency;
 let copy;
 let audio_src;
 let outputText;
+let container;
+let audioMotion;
 
 // for audio capture
 // This enum states the current speech state.
@@ -195,6 +223,10 @@ async function transcribe_file() {
 
 // start recording
 async function startRecord() {
+  // stream = null;
+  // outputText.innerText = '';
+  // audio_src.src == "";
+
   resultShow.setAttribute('class', '');
   if (mediaRecorder === undefined) {
     try {
@@ -248,6 +280,8 @@ function stopRecord() {
   }
 }
 
+
+let micStream;
 // start speech
 async function startSpeech() {
   resultShow.setAttribute('class', '');
@@ -260,6 +294,9 @@ async function startSpeech() {
 
 // stop speech
 async function stopSpeech() {
+  // if (micStream) {
+	// 	audioMotion.disconnectInput( micStream, true );
+  // }
   if (streamingNode != null) {
     streamingNode.port.postMessage({ message: "STOP_PROCESSING", data: true });
     speechState = SpeechStates.PAUSED;
@@ -363,6 +400,10 @@ async function captureAudioStream() {
     };
 
     sourceNode.connect(streamingNode).connect(context.destination);
+
+    // micStream = audioMotion.audioCtx.createMediaStreamSource(stream);
+    // audioMotion.connectInput(micStream);
+
   } catch (e) {
     log(`Error · Capturing audio - ${e.message}`);
   }
@@ -501,6 +542,7 @@ const ui = async () => {
   resultShow = document.getElementById("result-show");
   latency = document.getElementById("latency");
   copy = document.getElementById("copy");
+  container = document.getElementById('container');
 
   labelFileUpload.setAttribute('class', 'file-upload-label disabled');
   fileUpload.disabled = true;
@@ -553,6 +595,7 @@ const ui = async () => {
       files = target.files;
     if(files && files[0]) {
       audio_src.src = URL.createObjectURL(files[0]);
+      audio_src.play();
       transcribe_file();
     }
   };
@@ -594,6 +637,19 @@ const ui = async () => {
 
   } catch (e) {
     log(`Error · ${e.message}`);
+  }
+
+  try {
+    audioMotion = new AudioMotionAnalyzer(
+      container,
+      {
+        source: audio_src
+      }
+    );
+    audioMotion.setOptions(options);
+  }
+  catch(err) {
+    container.innerHTML = `Error: ${ err.message }`;
   }
 };
 
