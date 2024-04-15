@@ -51,6 +51,9 @@ let mediaRecorder;
 let stream;
 
 // some dom shortcuts
+let installGuidesLink;
+let installGuides;
+let installClose;
 let fileUpload;
 let labelFileUpload;
 let record;
@@ -490,7 +493,7 @@ const checkWebNN = async () => {
 
   if (webnnStatus.webnn) {
     status.setAttribute("class", "green");
-    info.innerHTML = "WebNN supported";
+    info.innerHTML = `WebNN supported · <a href="#" id="install-guides-link">Install Guides</a>`;
   } else {
     if (webnnStatus.error) {
       status.setAttribute("class", "red");
@@ -520,7 +523,7 @@ const setupORT = async () => {
       `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ortVersion}/dist/ort.all.min.js`
     );
     ortLink = `https://www.npmjs.com/package/onnxruntime-web/v/${ortVersion}`;
-    ortversion.innerHTML = `ONNX Runtime Web: <a href="${ortLink}">${ortVersion}</a>`;
+    ortversion.innerHTML = `ONNX Runtime: <a href="${ortLink}">${ortVersion}</a>`;
   } else {
     await loadScript("onnxruntime-web", "./dist/ort.all.min.js");
     ortversion.innerHTML = `ONNX Runtime Web: Test version`;
@@ -539,7 +542,9 @@ const ui = async () => {
   latency = document.getElementById("latency");
   copy = document.getElementById("copy");
   container = document.getElementById('container');
-
+  installGuides = document.getElementById('install-guides');
+  installClose = document.getElementById('install-close');
+  
   labelFileUpload.setAttribute('class', 'file-upload-label disabled');
   fileUpload.disabled = true;
   record.disabled = true;
@@ -556,6 +561,21 @@ const ui = async () => {
     title.innerHTML = "WebGPU";
   }
   await checkWebNN();
+
+  installGuidesLink = document.getElementById('install-guides-link');
+
+  if(installGuidesLink) {
+    installGuidesLink.addEventListener("mouseover", (e) => {
+      installGuides.setAttribute('class', '');
+    })
+  }
+
+  if(installClose) {
+    installClose.addEventListener("click", (e) => {
+      installGuides.setAttribute('class', 'none');
+    })
+  }
+
   updateConfig();
 
   // click on Record

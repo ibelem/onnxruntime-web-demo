@@ -190,10 +190,10 @@
                             </svg>
                         </label>
                         <input class="file-upload-input" title="Upload audio files" type="file" id="file-upload"
-                            accept=".mp3,.wav,.ogg;audio/*;capture=microphone">
+                            accept=".mp3,.wav,.ogg;audio/*;capture=microphone" disabled>
                     </div>
                     <div>
-                        <button id="record" class="" type="button" title="Record">
+                        <button id="record" class="" type="button" title="Record" disabled>
                             <div class="on">
                                 <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
                                     <path
@@ -209,7 +209,7 @@
                         </button>
                     </div>
                     <div>
-                        <button id="speech" class="" type="button" title="Realtime speech">
+                        <button id="speech" class="" type="button" title="Realtime speech" disabled>
                             <div class="on">
                                 <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
                                     <path
@@ -230,6 +230,20 @@
 
             <div id="record_play">
                 <audio id="record_play_audio" controls></audio>
+            </div>
+
+            <div id='install-guides' class="none">
+                WebNN requires a compatible browser to run, and Windows* 11 v21H2 (DML 1.6.0) or higher.
+                <ol>
+                  <li>Download the latest <a href="https://www.microsoft.com/edge/download/insider" title="Microsoft Edge Canary">Microsoft Edge Canary</a> or <a href="https://google.com/chrome/canary" title="Google Chrome Canary">Google Chrome Canary</a> browser</li>
+                  <li>To enable WebNN, in your browser address bar, enter <code>chrome://flags</code>, and then press <code>Enter</code>. An Experiments page opens</li>
+                  <li>In the Search flags box, enter <code>webnn</code>. Enables WebNN API appears</li>
+                  <li>In the drop-down menu, select <code>Enabled</code></li>
+                  <li>Relaunch your browser</li>
+                </ol>  
+                <button id="install-close" class="" type="button" title="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
+                </button>
             </div>
         </div>
         <div id="sidebar">

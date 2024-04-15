@@ -726,22 +726,22 @@ button svg {
   text-align: right;
 }
 
-#ortversion a {
-  color: var(--font);
-  text-decoration: none;
-}
-
-#ortversion a:hover {
-  color: var(--green);
-  text-decoration: underline;
-}
-
-#webnnstatus a {
+#ortversion a, #install-guides-link {
   color: var(--main);
   text-decoration: none;
 }
 
-#webnnstatus a:hover {
+#ortversion a:hover, #install-guides-link:hover {
+  color: var(--green);
+  text-decoration: underline;
+}
+
+#webnnstatus a, #install-guides a {
+  color: var(--main);
+  text-decoration: none;
+}
+
+#webnnstatus a:hover, #install-guides a:hover {
   color: var(--green);
   text-decoration: underline;
 }
@@ -784,6 +784,73 @@ button svg {
 .footerinfo {
   margin-bottom: 1rem;
   font-size: 12px;
+}
+
+#install-guides.none {
+  display: none;
+}
+
+@keyframes fadeInOpacity {
+  0% {
+      opacity: 0;
+  }
+  100% {
+      opacity: 1;
+  }
+}
+
+#install-guides {
+  position: relative;
+  width: 100%;
+  margin: 2rem auto 0 auto;
+  padding: 10px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 14px;
+  opacity: 1;
+  animation-name: fadeInOpacity;
+  animation-iteration-count: 1;
+  animation-timing-function: ease-in;
+  animation-duration: 0.5s;
+}
+
+#install-guides ol {
+  margin: 10px 10px 0 10px;
+  padding: 0px 20px;
+}
+
+#install-close {
+  position: absolute;
+  right: 12px;
+  top: 2px;
+  width: 16px;
+  height: 16px;
+  background: transparent;
+  border: 0px solid var(--border);
+}
+
+#install-close svg {
+  display: inline-block;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+
+#install-close svg path {
+  fill: var(--border);
+}
+
+#install-close:hover {
+  cursor: pointer;
+}
+
+#install-guides:hover #install-close svg path {
+  fill: var(--main);
+}
+
+#install-guides #install-close:hover svg path {
+  fill: var(--green);
 }
 
 /* Largest devices such as desktops (1280px) */
