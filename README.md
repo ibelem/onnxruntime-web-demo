@@ -1,14 +1,35 @@
 # ONNX Runtime Web Demo
 
-ONNX Runtime Web demo is an interactive demo portal showing real use cases running [ONNX Runtime Web](https://github.com/microsoft/onnxruntime/tree/master/js/web#readme) in VueJS. It currently supports four examples for you to quickly experience the power of ONNX Runtime Web.
+ONNX Runtime Web demo is an interactive demo portal showing real use cases running [ONNX Runtime Web](https://github.com/microsoft/onnxruntime/tree/master/js/web#readme). It currently supports four examples for you to quickly experience the power of ONNX Runtime Web.
 
 The demo is available here [ONNX Runtime Web demo website](https://microsoft.github.io/onnxruntime-web-demo/).
 
-_NOTE: Currently, the supported platforms are Edge/Chrome/Firefox/Electron/Node.js (support for other platforms is coming soon)._
+_NOTE: Currently, the supported platforms are Edge/Chrome (support for other platforms is coming soon)._
 
 ## Use Cases
 
 The demo provides four scenarios based on four different ONNX pre-trained deep learning models.
+
+### 1. Stable Diffusion 1.5
+
+1
+
+### 2. Stable Diffusion Turbo
+
+2
+
+### 3. Segment Anything
+
+3
+
+### 4. Whisper Base
+
+4
+
+
+## Archived Demos
+
+The code of demos below can be found under [v1](./v1/) folder.
 
 ### 1. MobileNet
 
@@ -36,48 +57,20 @@ is a deep convolutional neural network for emotion recognition in faces. In the 
 ### Install Dependencies
 
 ```
+cd onnxruntime-web-demo
+openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
 npm install
 ```
 
-### Serve the demo
+### Run the demo
 
-**Serve the demo in localhost**
+**Run the demo in localhost**
 
 ```
-npm run serve
+npm run dev
 ```
 
 This will start a dev server and run ONNX Runtime Web demo on your localhost.
-
-### Deploy the demo
-
-```
-npm run build
-```
-
-This will pack the source files into `/docs` folder and be ready for deployment.
-
-**- Electron support**
-
-ONNX Runtime Web demo can also serve as a Windows desktop app using [Electron](https://electronjs.org/).
-
-First create a developer build of the app by running
-
-```
-npm run build -- --mode developer
-```
-
-Then run
-
-```
-npm run electron-packager
-```
-
-This will create a new `/ONNXRuntimeWeb-demo-win32-x64` folder. Run `/ONNXRuntimeWeb-demo-win32-x64/ONNXRuntimeWeb-demo.exe` to enjoy Electron desktop app.
-
-## Credits
-
-This demo is adapted from [keras.js demo](https://github.com/transcranial/keras-js). Modifications have been made to the UI and the backend uses `ONNX Runtime Web`.
 
 ## Contributing
 

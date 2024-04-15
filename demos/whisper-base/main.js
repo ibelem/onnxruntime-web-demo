@@ -145,10 +145,6 @@ function ready() {
   // progress.parentNode.style.display = "none";
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 // process audio buffer
 async function process_audio(audio, starttime, idx, pos) {
   
@@ -157,15 +153,15 @@ async function process_audio(audio, starttime, idx, pos) {
     try {
       // update progress bar
       progress.style.width = ((idx * 100) / audio.length).toFixed(1) + "%";
-      await sleep(kDelay);
+
       // run inference for 30 sec
       const xa = audio.slice(idx, idx + kSteps);
-      const ret = await whisper.run(xa, kSampleRate);
+      const ret = await whisper.run(xa);
       // append results to outputText
       outputText.innerText += ret;
       logUser(ret);
       // outputText.scrollTop = outputText.scrollHeight;
-      await sleep(kDelay);
+
       process_audio(audio, starttime, idx + kSteps, pos + 30);
     } catch (e) {
       log(`Error · ${e.message}`);
@@ -223,9 +219,9 @@ async function transcribe_file() {
 
 // start recording
 async function startRecord() {
-  // stream = null;
-  // outputText.innerText = '';
-  // audio_src.src == "";
+  stream = null;
+  outputText.innerText = '';
+  audio_src.src == "";
 
   resultShow.setAttribute('class', '');
   if (mediaRecorder === undefined) {
@@ -259,7 +255,7 @@ async function startRecord() {
     ).toFixed(1)}s`;
   };
 
-  mediaRecorder.onstop = () => {
+  mediaRecorder.onstop = async () => {
     const blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
     log(
       `Preprocessing · Recorded ${((performance.now() - recording_start) / 1000).toFixed(
@@ -267,15 +263,16 @@ async function startRecord() {
       )}s audio`
     );
     audio_src.src = window.URL.createObjectURL(blob);
+    audio_src.play();
+    await transcribe_file();
   };
   mediaRecorder.start(kIntervalAudio_ms);
 }
 
 // stop recording
-function stopRecord() {
+async function stopRecord() {
   if (mediaRecorder) {
     mediaRecorder.stop();
-    transcribe_file();
     mediaRecorder = undefined;
   }
 }
@@ -340,6 +337,8 @@ async function captureAudioStream() {
           latency: 0
         },
       });
+      // micStream = audioMotion.audioCtx.createMediaStreamSource(stream);
+      // audioMotion.connectInput(micStream);
     }
     if (streamingNode) {
       return;
@@ -401,9 +400,6 @@ async function captureAudioStream() {
 
     sourceNode.connect(streamingNode).connect(context.destination);
 
-    // micStream = audioMotion.audioCtx.createMediaStreamSource(stream);
-    // audioMotion.connectInput(micStream);
-
   } catch (e) {
     log(`Error · Capturing audio - ${e.message}`);
   }
@@ -439,7 +435,7 @@ async function processAudioBuffer() {
   // per testing, audios less than 0.16 sec are almost blank audio
   if (processBuffer.length > kSampleRate * 0.16) {
     const start = performance.now();
-    const ret = await whisper.run(processBuffer, kSampleRate);
+    const ret = await whisper.run(processBuffer);
 
     const processing_time = (performance.now() - start) / 1000;
     const total = processBuffer.length / kSampleRate;
@@ -590,13 +586,13 @@ const ui = async () => {
   });
 
   // drop file
-  fileUpload.onchange = function (evt) {
+  fileUpload.onchange = async function (evt) {
     let target = evt.target || window.event.src,
       files = target.files;
     if(files && files[0]) {
       audio_src.src = URL.createObjectURL(files[0]);
       audio_src.play();
-      transcribe_file();
+      await transcribe_file();
     }
   };
 
