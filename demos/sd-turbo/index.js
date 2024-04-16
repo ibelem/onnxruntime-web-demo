@@ -803,23 +803,24 @@ const ui = async () => {
         generate_image()
     });
 
+    const load_model_ui = () => {
+        loading = load_models(models);
+        const img_divs = [img_div_0, img_div_1, img_div_2, img_div_3];
+        img_divs.forEach(div => div.setAttribute('class', 'frame loadwave'));
+        buttons.setAttribute('class', 'button-group key loading');
+    }
+
     load.addEventListener('click', ()=> {
         if (config.provider === 'webgpu') {
             hasFp16().then((fp16) => {
                 if (fp16) {
-                    loading = load_models(models);
-                    const img_divs = [img_div_0, img_div_1, img_div_2, img_div_3];
-                    img_divs.forEach(div => div.setAttribute('class', 'frame loadwave'));
-                    buttons.setAttribute('class', 'button-group key loading');
+                    load_model_ui();
                 } else {
                     log(`[Error] Your GPU or Browser doesn't support webgpu/f16`);
                 }
             });
         } else {
-            loading = load_models(models);
-            const img_divs = [img_div_0, img_div_1, img_div_2, img_div_3];
-            img_divs.forEach(div => div.setAttribute('class', 'frame loadwave'));
-            buttons.setAttribute('class', 'button-group key loading');
+            load_model_ui();
         } 
     })
 
