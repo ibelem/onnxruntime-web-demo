@@ -161,13 +161,16 @@ async function load_models(models) {
         let modelNameInLog = '';
         try {
             let start = performance.now();
-            let modelUrl = `${config.model}/${name}/model.onnx`;
+            let modelUrl;
             if (name == 'text_encoder') {
                 modelNameInLog = 'Text Encoder';
+                modelUrl = `${config.model}/${name}/model_layernorm.onnx`;
             } else if (name == 'unet') {
                 modelNameInLog = 'UNet';
+                modelUrl = `${config.model}/${name}/model_layernorm.onnx`;
             } else if(name == 'vae_decoder') {
-                modelNameInLog = 'VAE Decoder'
+                modelNameInLog = 'VAE Decoder';
+                modelUrl = `${config.model}/${name}/model.onnx`;
             }
             log(`[Load] Loading model ${modelNameInLog} · ${model.size}`);
             let modelBuffer = await getModelOPFS(name, modelUrl, false);
@@ -228,15 +231,16 @@ const config = getConfig();
 const models = {
     "unet": {
         // original model from dwayne, then I dump new one from local graph optimization.
-        url: "unet/model.onnx", 
+        url: "unet/model_layernorm.onnx", 
         size: '1.61GB',
         opt: { graphOptimizationLevel: 'disabled' }, // avoid wasm heap issue (need Wasm memory 64)
     },
     "text_encoder": {
         // orignal model from guschmue, I convert the output to fp16.
-        url: "text_encoder/model.onnx", 
+        url: "text_encoder/model_layernorm.onnx", 
         size: '649MB',
-        opt: { freeDimensionOverrides: { batch_size: 1, sequence_length: 77 } },
+        opt: { graphOptimizationLevel: 'disabled' },
+        // opt: { freeDimensionOverrides: { batch_size: 1, sequence_length: 77 } },
     },
     "vae_decoder": {
         // use guschmue's model has precision lose in webnn caused by instanceNorm op,

@@ -5,54 +5,38 @@ export function cache_update(decoder_input, past_key_values, inf_iter, max_seque
         // perform padding for each attention head
         for (let i = 0; i < 6; i++) {
             // (ONLY NEEDED FOR DECODER KV)
-            // for name 'present_key_values.${i}.decoder.key'  [1,8,4,64]
-
+            // for name 'present_key_values.${i}.decoder.key'  [1,8,4,64] and
+            // 'present_key_values.${i}.decoder.value' [1,8,4,64]
             // create 0 padding of shape max sequence length - num_init_tokens - 1
             // (default: 4 as kv cache 2nd dim = 4 due to 4 init tokens)
             // -1 added to allow space for new KV items such that after concat op,
             // seq len dim of KV cache is same as max seq len
             // output of decoder non cache is in fp16 precision,
             // so we create the padded KV in same precision
-            decoder_input[`past_key_values.${i}.decoder.key`] = new ort.Tensor(data_type, new cache_precision(8*127*64).fill(0), [1,8,127,64]);
-            for (let h = 0; h < 8; h ++) {
+            decoder_input[`past_key_values.${i}.decoder.key`] = new ort.Tensor(data_type, new cache_precision(8 * 127 * 64).fill(0), [1, 8, 127, 64]);
+            decoder_input[`past_key_values.${i}.decoder.value`] = new ort.Tensor(data_type, new cache_precision(8 * 127 * 64).fill(0), [1, 8, 127, 64]);
+            for (let h = 0; h < 8; h++) {
                 for (let d = 0; d < 64; d++) {
                     for (let s = 0; s < 4; s++) {
-                        decoder_input[`past_key_values.${i}.decoder.key`].cpuData[h*64*127 + s*64 + d] = 
-                            past_key_values[`present_key_values.${i}.decoder.key`].cpuData[h*4*64 + s*64 + d];
-                    }
-                }
-            }
-
-            // for name 'present_key_values.${i}.decoder.value' [1,8,4,64]
-
-            // we want the layout of value cache as NCWH to avoid implicit transpose
-            // As seq len is H dimension, do right padding in 3rd axis
-            decoder_input[`past_key_values.${i}.decoder.value`] = new ort.Tensor(data_type, new cache_precision(8*127*64).fill(0), [1,8,127,64]);
-            for (let h = 0; h < 8; h ++) {
-                for (let d = 0; d < 64; d++) {
-                    for (let s = 0; s < 4; s++) {
-                        decoder_input[`past_key_values.${i}.decoder.value`].cpuData[h*64*127 + s*64 + d/*h*64*127 + s + d*127*/] = 
-                            past_key_values[`present_key_values.${i}.decoder.value`].cpuData[h*4*64 + s*64 + d];
+                        decoder_input[`past_key_values.${i}.decoder.key`].cpuData[h * 64 * 127 + s * 64 + d] =
+                            past_key_values[`present_key_values.${i}.decoder.key`].cpuData[h * 4 * 64 + s * 64 + d];
+                        decoder_input[`past_key_values.${i}.decoder.value`].cpuData[h * 64 * 127 + s * 64 + d] =
+                            past_key_values[`present_key_values.${i}.decoder.value`].cpuData[h * 4 * 64 + s * 64 + d];
                     }
                 }
             }
         }
     } else {
-        // fill new KV cache value based on position id axis 2/3 based on if it is key or value
+        // fill new KV cache value based on position id axis 2 based on if it is key or value
         for (let i = 0; i < 6; i++) {
-            // for name 'present_key_values.${i}.decoder.key' NHSD (batch, head, squence_length, hidden_dimension) [1,8,1,64]
-            for (let h = 0; h < 8; h ++) {
-                for (let d = 0; d < 64; d++) {
-                    decoder_input[`past_key_values.${i}.decoder.key`].cpuData[h*127*64 + (position_ids-1)*64 + d] = 
-                        past_key_values[`present_key_values.${i}.decoder.key`].cpuData[h*64+d];
-                }
-            }
-
-            // for name 'present_key_values.${i}.decoder.value' // NHDS
+            // for name 'present_key_values.${i}.decoder.key' and 'present_key_values.${i}.decoder.value'
+            // NHSD (batch, head, squence_length, hidden_dimension) [1,8,1,64]
             for (let h = 0; h < 8; h++) {
                 for (let d = 0; d < 64; d++) {
-                        decoder_input[`past_key_values.${i}.decoder.value`].cpuData[h*127*64 + (position_ids-1)*64 + d/*h*127*64 + (position_ids-1) + d*127*/] =
-                            past_key_values[`present_key_values.${i}.decoder.value`].cpuData[h*64+d];
+                    decoder_input[`past_key_values.${i}.decoder.key`].cpuData[h * 127 * 64 + (position_ids - 1) * 64 + d] =
+                        past_key_values[`present_key_values.${i}.decoder.key`].cpuData[h * 64 + d];
+                    decoder_input[`past_key_values.${i}.decoder.value`].cpuData[h * 127 * 64 + (position_ids - 1) * 64 + d] =
+                        past_key_values[`present_key_values.${i}.decoder.value`].cpuData[h * 64 + d];
                 }
             }
         }
