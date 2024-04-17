@@ -12,20 +12,19 @@ The demo provides four scenarios based on four different ONNX pre-trained deep l
 
 ### 1. Stable Diffusion 1.5
 
-1
+[Stable Diffusion](https://huggingface.co/onnxruntime-web-temp/demo/tree/main/stable-diffusion-1.5) is a latent text-to-image diffusion model capable of generating photo-realistic images given any text input.
 
-### 2. Stable Diffusion Turbo
+### 2. SD-Turbo
 
-2
+[SD-Turbo](https://huggingface.co/onnxruntime-web-temp/demo/tree/main/sd-turbo) is a fast generative text-to-image model that can synthesize photorealistic images from a text prompt in a single network evaluation. In the demo, you can generate an image in 2s on AI PC devices by leveraging WebNN API, a dedicated low-level API for neural network inference hardware acceleration.
 
 ### 3. Segment Anything
 
-3
+[Segment Anything](https://huggingface.co/onnxruntime-web-temp/demo/tree/main/segment-anything) is a new AI model from Meta AI that can "cut out" any object. In the demo, you can segment any object from your uploaded images.
 
 ### 4. Whisper Base
 
-4
-
+[Whisper Base](https://huggingface.co/onnxruntime-web-temp/demo/tree/main/whisper-base) is a pre-trained model for automatic speech recognition (ASR) and speech translation. In the demo, you can experience the speech to text feature by using on-device inference powered by WebNN API and DirectML, especially the NPU acceleration.
 
 ## Archived Demos
 
@@ -61,8 +60,19 @@ cd onnxruntime-web-demo
 openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
 npm install
 ```
+> The private and public keys are used for local https connection, WebNN and WebGPU can only run in secured contexts. This step is optional if running with http://localhost since it's considered a secure context and will behave like https.
 
 ### Run the demo
+
+**WebNN Installation Guides**
+
+WebNN requires a compatible browser to run, and Windows* 11 v21H2 (DML 1.6.0) or higher.
+
+1. Download the latest [Microsoft Edge Canary](https://www.microsoft.com/edge/download/insider) or [Google Chrome Canary](https://google.com/chrome/canary) browser
+2. To enable WebNN, in your browser address bar, enter `chrome://flags`, and then press `Enter`. An Experiments page opens
+3. In the Search flags box, enter `webnn`. Enables WebNN API appears
+4. In the drop-down menu, select `Enabled`
+5. Relaunch your browser
 
 **Run the demo in localhost**
 
@@ -70,7 +80,7 @@ npm install
 npm run dev
 ```
 
-This will start a dev server and run ONNX Runtime Web demo on your localhost.
+This will start a dev server and run ONNX Runtime Web demo with the WebNN enabled browser on your localhost.
 
 ## Contributing
 
