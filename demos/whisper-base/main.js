@@ -161,7 +161,7 @@ function ready() {
 
 // process audio buffer
 async function process_audio(audio, starttime, idx, pos) {
-  
+
   if (idx < audio.length) {
     // not done
     try {
@@ -233,8 +233,15 @@ async function transcribe_file() {
 
 // start recording
 async function startRecord() {
+  labelFileUpload.setAttribute('class', 'file-upload-label disabled');
+  fileUpload.disabled = true;
+  record.disabled = false;
+  speech.disabled = true;
   stream = null;
   outputText.innerText = '';
+  if (!audio_src.paused) {
+    audio_src.pause();
+  }
   audio_src.src == "";
 
   resultShow.setAttribute('class', '');
@@ -291,10 +298,18 @@ async function stopRecord() {
   }
 }
 
-
 let micStream;
 // start speech
 async function startSpeech() {
+  speechToText = '';
+  labelFileUpload.setAttribute('class', 'file-upload-label disabled');
+  fileUpload.disabled = true;
+  record.disabled = true;
+  speech.disabled = false;
+  if (!audio_src.paused) {
+    audio_src.pause();
+  }
+  audio_src.src == "";
   resultShow.setAttribute('class', '');
   speechState = SpeechStates.PROCESSING;
   await captureAudioStream();
@@ -332,6 +347,7 @@ async function stopSpeech() {
   //     // context.close().then(() => context = null);
   //     await context.suspend();
   // }
+  ready();
 }
 
 // use AudioWorklet API to capture real-time audio
@@ -592,7 +608,14 @@ const main = async () => {
 
   // drop file
   fileUpload.onchange = async function (evt) {
+    fileUpload.disabled = false;
+    record.disabled = true;
+    speech.disabled = true;
     subText = "";
+    if (!audio_src.paused) {
+      audio_src.pause();
+    }
+    audio_src.src == "";
     let target = evt.target || window.event.src,
       files = target.files;
     if(files && files.length > 0) {
