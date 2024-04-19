@@ -20,8 +20,8 @@ const MODELS = {
             size: '171MB',
         },
         {
-            name: "SAM ViT-B Decoder",
-            url: "sam_vit_b_01ec64.decoder.onnx",
+            name: "SAM ViT-B Decoder (FP16)",
+            url: "sam_vit_b_01ec64.decoder-fp16.onnx",
             size: "15.7MB",
         },
     ],

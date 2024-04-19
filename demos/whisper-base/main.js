@@ -43,6 +43,7 @@ const kDelay = 100;
 let whisper;
 
 let provider = "webnn";
+let deviceType = 'gpu';
 let dataType = "float16";
 
 // audio context
@@ -51,6 +52,8 @@ let mediaRecorder;
 let stream;
 
 // some dom shortcuts
+let device = 'gpu';
+let badge;
 let installGuidesLink;
 let installGuides;
 let installClose;
@@ -83,6 +86,7 @@ let audioChunks = []; // member {isSubChunk: boolean, data: Float32Array}
 let subAudioChunks = [];
 let chunkLength = 1 / 25; // length in sec of one audio chunk from AudioWorklet processor, recommended by vad
 let maxChunkLength = 1; // max audio length for an audio processing
+let accumulateSubChunks = false;
 let silenceAudioCounter = 0;
 // check if last audio processing is completed, to avoid race condition
 let lastProcessingCompleted = true;
@@ -95,8 +99,8 @@ let vad = null;
 
 let singleAudioChunk = null; // one time audio process buffer
 let subAudioChunkLength = 0; // length of a sub audio chunk
-let speechToText = "";
 let subText = "";
+let speechToText = "";
 
 const blacklistTags = [
   "[inaudible]",
@@ -114,6 +118,7 @@ const blacklistTags = [
 function updateConfig() {
   const query = window.location.search.substring("1");
   const providers = ["webnn", "webgpu", "wasm"];
+  const deviceTypes = ['cpu', 'gpu', 'npu']
   const dataTypes = ["float32", "float16"];
   let vars = query.split("&");
   for (let i = 0; i < vars.length; i++) {
@@ -121,11 +126,17 @@ function updateConfig() {
     if (pair[0] == "provider" && providers.includes(pair[1])) {
       provider = pair[1];
     }
+    if (pair[0] == 'deviceType' && deviceTypes.includes(pair[1])) {
+      deviceType = pair[1];
+    }
     if (pair[0] == "dataType" && dataTypes.includes(pair[1])) {
       dataType = pair[1];
     }
     if (pair[0] == "maxChunkLength") {
       maxChunkLength = parseFloat(pair[1]);
+    }
+    if (pair[0] == 'accumulateSubChunks') {
+      accumulateSubChunks = pair[1].toLowerCase() === 'true';
     }
   }
 }
@@ -410,30 +421,40 @@ async function captureAudioStream() {
 
 async function processAudioBuffer() {
   lastProcessingCompleted = false;
-  let processBuffer = audioChunks[0].data;
+  let processBuffer;
+  const audioChunk = audioChunks.shift();
   // it is sub audio chunk, need to do rectification at last sub chunk
-  if (audioChunks[0].isSubChunk) {
-    subAudioChunks.push(processBuffer);
+  if (audioChunk.isSubChunk) {
+    subAudioChunks.push(audioChunk.data);
     // if the speech is pause, and it is the last audio chunk, concat the subAudioChunks to do rectification
     if (speechState == SpeechStates.PAUSED && audioChunks.length == 1) {
       processBuffer = concatBufferArray(subAudioChunks);
       subAudioChunks = []; // clear subAudioChunks
+    } else if (subAudioChunks.length * maxChunkLength >= 10) {
+      // if total length of subAudioChunks >= 10 sec,
+      // force to break it from subAudioChunks to reduce latency
+      // because it has to wait for more than 10 sec to do audio processing.
+      processBuffer = concatBufferArray(subAudioChunks);
+      subAudioChunks = [];
+    } else {
+        if (accumulateSubChunks) {
+            processBuffer = concatBufferArray(subAudioChunks);
+        } else {
+            processBuffer = audioChunk.data;
+        }
     }
   } else {
-    // concat all subAudoChunks to do rectification
+    // Slience detected, concat all subAudoChunks to do rectification
     if (subAudioChunks.length > 0) {
-      subAudioChunks.push(processBuffer); // append sub chunk's next neighbor
+      subAudioChunks.push(audioChunk.data); // append sub chunk's next neighbor
       processBuffer = concatBufferArray(subAudioChunks);
       subAudioChunks = []; // clear subAudioChunks
+    } else {
+      // No other subAudioChunks, just process this one.
+      processBuffer = audioChunk.data;
     }
   }
-  // if total length of subAudioChunks >= 10 sec,
-  // force to break it from subAudioChunks to reduce latency
-  // because it has to wait for more than 10 sec to do audio processing.
-  if (subAudioChunks.length * maxChunkLength >= 10) {
-    processBuffer = concatBufferArray(subAudioChunks);
-    subAudioChunks = [];
-  }
+ 
   // ignore too small audio chunk, e.g. 0.16 sec
   // per testing, audios less than 0.16 sec are almost blank audio
   if (processBuffer.length > kSampleRate * 0.16) {
@@ -454,29 +475,31 @@ async function processAudioBuffer() {
       }, ${total}s audio processing time: ${processing_time.toFixed(2)}s`
     );
     console.log("Result: ", ret);
-    // TODO? throttle the un-processed audio chunks?
-    //In order to catch up latest audio to achieve real-time effects.
-    console.log("Un-processed audio chunk length: ", audioChunks.length - 1);
     // ignore slient, inaudible audio output, i.e. '[BLANK_AUDIO]'
     if (!blacklistTags.includes(ret)) {
       if (subAudioChunks.length > 0) {
-        subText += ret;
+        if (accumulateSubChunks) {
+          subText = ret;
+        } else {
+          subText += ret;
+        }
         outputText.innerText = speechToText + subText;
-        logUser(ret);
       } else {
+        subText = '';
         speechToText += ret;
         outputText.innerText = speechToText;
-        logUser(ret);
       }
+      logUser(ret);
       // outputText.scrollTop = outputText.scrollHeight;
     }
   }
   lastProcessingCompleted = true;
-  audioChunks.shift(); // remove processed chunk
+
   if (subAudioChunks.length == 0) {
     // clear subText
     subText = "";
   }
+
   if (audioChunks.length > 0) {
     // recusive audioBuffer in audioChunks
     lastSpeechCompleted = false;
@@ -485,32 +508,6 @@ async function processAudioBuffer() {
     lastSpeechCompleted = true;
   }
 }
-
-const checkWebNN = async () => {
-  let status = document.querySelector("#webnnstatus");
-  let info = document.querySelector("#info");
-  let webnnStatus = await webNnStatus();
-
-  if (webnnStatus.webnn) {
-    status.setAttribute("class", "green");
-    info.innerHTML = `WebNN supported · <a href="#" id="install-guides-link">Install Guides</a>`;
-  } else {
-    if (webnnStatus.error) {
-      status.setAttribute("class", "red");
-      info.innerHTML = "WebNN not supported: " + webnnStatus.error;
-    } else {
-      status.setAttribute("class", "red");
-      info.innerHTML = "WebNN not supported";
-    }
-  }
-
-  if (
-    getQueryValue("provider") &&
-    getQueryValue("provider").toLowerCase().indexOf("webgpu") > -1
-  ) {
-    status.innerHTML = "";
-  }
-};
 
 const setupORT = async () => {
   const ortversion = document.querySelector("#ortversion");
@@ -530,7 +527,9 @@ const setupORT = async () => {
   }
 };
 
-const ui = async () => {
+const main = async () => {
+  device = document.getElementById('device');
+  badge = document.getElementById('badge');
   audio_src = document.querySelector("audio");
   labelFileUpload = document.getElementById("label-file-upload");
   fileUpload = document.getElementById("file-upload");
@@ -542,8 +541,6 @@ const ui = async () => {
   latency = document.getElementById("latency");
   copy = document.getElementById("copy");
   container = document.getElementById('container');
-  installGuides = document.getElementById('install-guides');
-  installClose = document.getElementById('install-close');
   
   labelFileUpload.setAttribute('class', 'file-upload-label disabled');
   fileUpload.disabled = true;
@@ -551,36 +548,24 @@ const ui = async () => {
   speech.disabled = true;
   // progress.parentNode.style.display = "none";
 
+  updateConfig();
+
   await setupORT();
   ort.env.wasm.numThreads = 1;
   ort.env.wasm.simd = true;
-  if (
-    getQueryValue("provider") &&
-    getQueryValue("provider").toLowerCase().indexOf("webgpu") > -1
-  ) {
-    title.innerHTML = "WebGPU";
+
+  if (deviceType.toLowerCase().indexOf("gpu") > -1) {
+    device.innerHTML = "GPU";
+    badge.setAttribute('class', '');
+  } else if (deviceType.toLowerCase().indexOf("npu") > -1) {
+    device.innerHTML = "NPU";
+    badge.setAttribute('class', 'npu');
   }
-  await checkWebNN();
-
-  installGuidesLink = document.getElementById('install-guides-link');
-
-  if(installGuidesLink) {
-    installGuidesLink.addEventListener("mouseover", (e) => {
-      installGuides.setAttribute('class', '');
-    })
-  }
-
-  if(installClose) {
-    installClose.addEventListener("click", (e) => {
-      installGuides.setAttribute('class', 'none');
-    })
-  }
-
-  updateConfig();
 
   // click on Record
   record.addEventListener("click", (e) => {
     if (record.getAttribute('class').indexOf("active") == -1) {
+      subText = "";
       record.setAttribute('class', 'active');
       startRecord();
     } else {
@@ -607,12 +592,15 @@ const ui = async () => {
 
   // drop file
   fileUpload.onchange = async function (evt) {
+    subText = "";
     let target = evt.target || window.event.src,
       files = target.files;
-    if(files && files[0]) {
+    if(files && files.length > 0) {
       audio_src.src = URL.createObjectURL(files[0]);
       audio_src.play();
       await transcribe_file();
+    } else {
+      audio_src.src = '';
     }
   };
 
@@ -632,7 +620,7 @@ const ui = async () => {
     const whisper_url = location.href.includes("github.io")
       ? "https://huggingface.co/onnxruntime-web-temp/demo/resolve/main/whisper-base/"
       : "./models/";
-    whisper = new Whisper(whisper_url, provider, dataType);
+    whisper = new Whisper(whisper_url, provider, deviceType, dataType);
     await whisper.create_whisper_processor();
     await whisper.create_whisper_tokenizer();
     await whisper.create_ort_sessions();
@@ -667,6 +655,55 @@ const ui = async () => {
   catch(err) {
     container.innerHTML = `Error: ${ err.message }`;
   }
+
 };
+
+const ui = async () => {
+  let status = document.querySelector("#webnnstatus");
+  let info = document.querySelector("#info");
+  installGuides = document.getElementById('install-guides');
+  installClose = document.getElementById('install-close');
+  let webnnStatus = await webNnStatus();
+
+  if (
+    getQueryValue("provider") &&
+    getQueryValue("provider").toLowerCase().indexOf("webgpu") > -1
+  ) {
+    status.innerHTML = "";
+    title.innerHTML = "WebGPU";
+    await main();
+  } else {
+    if (webnnStatus.webnn) {
+      status.setAttribute("class", "green");
+      info.innerHTML = `WebNN supported · <a href="./?deviceType=gpu">GPU</a> · <a href="./?deviceType=npu">NPU</a> · <a href="#" id="install-guides-link">Install Guides</a>`;
+      await main();
+    } else {
+      if (webnnStatus.error) {
+        status.setAttribute("class", "red");
+        info.innerHTML = `WebNN not supported: ${webnnStatus.error}`;
+        log(`WebNN not supported: ${webnnStatus.error} · <a href="#" id="install-guides-link">Install Guides</a>`);
+        installGuides.setAttribute('class', '');
+      } else {
+        status.setAttribute("class", "red");
+        info.innerHTML = "WebNN not supported";
+        log("WebNN not supported");
+      }
+    }
+  }
+
+  installGuidesLink = document.getElementById('install-guides-link');
+
+  if(installGuidesLink) {
+    installGuidesLink.addEventListener("mouseover", (e) => {
+      installGuides.setAttribute('class', '');
+    })
+  }
+
+  if(installClose) {
+    installClose.addEventListener("click", (e) => {
+      installGuides.setAttribute('class', 'none');
+    })
+  }
+}
 
 document.addEventListener("DOMContentLoaded", ui, false);

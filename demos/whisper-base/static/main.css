@@ -37,6 +37,7 @@
   --font-2: rgba(53, 53, 53, 1);
   --font-weak: rgba(0, 0, 0, 0.6);
   --disabled: rgba(245, 245, 245, 0.2);
+  --bg-05: rgb(255, 255, 255, 0.05);
   --bg-2: rgb(255, 255, 255, 0.2);
   --bg-4: rgba(255, 255, 255, 0.4);
   --bg-6: rgb(255, 255, 255, 0.6);
@@ -57,6 +58,8 @@
   --border-2: rgb(230, 230, 230, 0.6);
   --green: rgba(1, 212, 73, 1);
   --pink: rgba(255, 0, 129, 1);
+  --pink-08: rgba(255, 0, 129, 0.8);
+  --pink-06: rgba(255, 0, 129, 0.6);
   --green-01: rgba(1, 212, 73, 0.1);
   --pink-01: rgba(255, 0, 129, 0.1);
   --green-02: rgba(1, 212, 73, 0.2);
@@ -82,6 +85,88 @@ body {
 body {
   scrollbar-width: auto;
   scrollbar-color: var(--main-01), transparent;
+}
+
+#badge {
+  border-radius: 3px;
+  align-self: center;
+  padding: 4px 10px;
+  color: var(--bg);
+  box-shadow: 0px 1px 10px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(to right bottom, var(--pink-06), var(--pink-08), var(--pink));
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr;
+  column-gap: 10px;
+  align-items: center;
+  justify-items: center;
+  width: 120px;
+  justify-self: flex-end;
+}
+
+#badge:hover {
+  background: linear-gradient(135deg, var(--pink-08) 0%, var(--pink) 40%, var(--pink) 100%);
+  box-shadow: 0 3px 15px -1px var(--pink-06);
+}
+
+#badge.npu {
+  background: linear-gradient(to right bottom, rgba(117, 116, 242), rgba(1, 7, 52, 1));
+}
+
+#badge.npu:hover {
+  background: linear-gradient(to right bottom, rgba(117, 116, 242), rgba(1, 7, 52, 0.8), rgba(1, 7, 52, 1));
+  box-shadow: 0 3px 15px -1px rgba(1, 7, 52, 1);
+}
+
+.badge-icon {
+  background: url('https://upload.wikimedia.org/wikipedia/commons/9/93/European_stars.svg') transparent no-repeat center center;
+  background-size: contain;
+  width: 100%;
+  height: 30px;
+}
+
+.badge-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.badge-text span {
+  font-size: 0.6rem;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr;
+  column-gap: 2px;
+  row-gap: 2px;
+  align-items: center;
+}
+
+.tile {
+  border: 1px solid var(--bg);
+  padding: 2px;
+  border-radius: 1px;
+}
+
+.t4 {
+  border-color: var(--bg-8);
+}
+
+.t3 {
+  border-color: var(--bg-6);
+}
+
+.t2 {
+  border-color: var(--bg-4);
+}
+
+.t1 {
+  border-color: var(--bg-2);
+}
+
+.t0 {
+  border-color: var(--bg-05);
 }
 
 .main {
@@ -564,27 +649,6 @@ button svg {
   display: block;
 }
 
-#badge {
-  position: absolute;
-  right: 40px;
-  top: 0px;
-  height: 60px;
-  width: 120px;
-  color: var(--bg);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.23), 0 10px 40px rgba(0, 0, 0, 0.19);
-  background: linear-gradient(to right bottom, #9e66c6, #6027e1);
-  padding: 10px;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-  display: inline-flex;
-  align-items: center;
-}
-
-#badge h2 {
-  text-align: center;
-  margin: 0px auto;
-}
-
 #error {
   align-self: center;
 }
@@ -695,6 +759,10 @@ button svg {
   margin-top: 10px;
 }
 
+#webnnstatus.red {
+  margin: -4px auto 6px auto;
+}
+
 #webnnstatus #circle {
   width: 7px;
   height: 7px;
@@ -710,7 +778,7 @@ button svg {
 #webnnstatus.red {
   background-color: var(--pink);
   color: var(--bg);
-  border-radius: 49px;
+  border-radius: 5px;
   padding: 4px 12px;
 }
 
@@ -779,6 +847,15 @@ button svg {
   align-items: start;
   justify-items: center;
   margin: 1rem 0;
+}
+
+.grid-2-41 h1 {
+  justify-self: left;
+}
+
+.grid-2-41.v1 {
+  margin: 0;
+  align-items: center;
 }
 
 .footerinfo {
@@ -862,7 +939,7 @@ button svg {
   .grid-2-41 {
     grid-template-columns: 2fr 1fr;
   }
-  .log-output {
+  .log-output, #badge {
     width: 32vw;
   }
 }
@@ -882,6 +959,7 @@ button svg {
   .grid-2, .grid-2-41 {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 1fr;
+    row-gap: 10px;
   }
 
   .grid-2-41 {
@@ -893,7 +971,7 @@ button svg {
     margin-bottom: 20px;
   }
 
-  .log-output {
+  .log-output, #badge {
     width: auto;
   }
 
