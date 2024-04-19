@@ -118,6 +118,15 @@ body {
   box-shadow: 0 3px 15px -1px rgba(1, 7, 52, 1);
 }
 
+#badge.cpu {
+  background: linear-gradient(to right bottom, var(--main-06), var(--main));
+}
+
+#badge.cpu:hover {
+  background: linear-gradient(to right bottom, var(--main), var(--main-dark), var(--main-darker));
+  box-shadow: 0 3px 15px -1px var(--main-darker);
+}
+
 .badge-icon {
   background: url('https://upload.wikimedia.org/wikipedia/commons/9/93/European_stars.svg') transparent no-repeat center center;
   background-size: contain;

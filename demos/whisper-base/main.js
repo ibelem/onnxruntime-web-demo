@@ -570,13 +570,17 @@ const main = async () => {
   ort.env.wasm.numThreads = 1;
   ort.env.wasm.simd = true;
 
-  if (deviceType.toLowerCase().indexOf("gpu") > -1) {
+  if (deviceType.toLowerCase().indexOf("cpu") > -1 || provider.toLowerCase().indexOf("wasm") > -1) {
+    device.innerHTML = "CPU";
+    badge.setAttribute('class', 'cpu');
+  } else if (deviceType.toLowerCase().indexOf("gpu") > -1 || provider.toLowerCase().indexOf("webgpu") > -1) {
     device.innerHTML = "GPU";
     badge.setAttribute('class', '');
   } else if (deviceType.toLowerCase().indexOf("npu") > -1) {
     device.innerHTML = "NPU";
     badge.setAttribute('class', 'npu');
   }
+
 
   // click on Record
   record.addEventListener("click", (e) => {
@@ -689,6 +693,13 @@ const ui = async () => {
   let webnnStatus = await webNnStatus();
 
   if (
+    getQueryValue("provider") &&
+    getQueryValue("provider").toLowerCase().indexOf("wasm") > -1
+  ) {
+    status.innerHTML = "";
+    title.innerHTML = "WebAssembly";
+    await main();
+  } else if (
     getQueryValue("provider") &&
     getQueryValue("provider").toLowerCase().indexOf("webgpu") > -1
   ) {
