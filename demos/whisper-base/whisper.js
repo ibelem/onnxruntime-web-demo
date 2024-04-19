@@ -107,6 +107,8 @@ export class Whisper {
       ],
     };
 
+    log(`WebNN EP Config: ` + JSON.stringify(options.executionProviders));
+
     for (let name of Object.keys(this.models)) {
       try {
         let url = this.url + this.models[name]["url"];
