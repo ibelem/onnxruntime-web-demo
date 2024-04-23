@@ -1,0 +1,49 @@
+{
+    "samples": [
+        {
+            "id": "1",
+            "title": "Stable Diffusion",
+            "version": "1.5",
+            "description": "",
+            "image":"sd1.5.png",
+            "models": [
+                "Text Encoder",
+                "UNET",
+                "VAE Decoder"
+            ],
+            "tags": [
+                "gpu"
+            ]
+        },
+        {
+            "id": "2",
+            "title": "Stable Diffusion",
+            "version": "2.1",
+            "description": "",
+            "image":"sd2.1.png",
+            "models": [
+                "Text Encoder",
+                "UNET",
+                "VAE Decoder"
+            ],
+            "tags": [
+                "gpu"
+            ]
+        },
+        {
+            "id": "3",
+            "title": "Image Classification",
+            "version": "",
+            "description": "",
+            "image":"ic_mobilenet.png",
+            "models": [
+                "MobileNet v2"
+            ],
+            "tags": [
+                "cpu",
+                "gpu",
+                "npu"
+            ]
+        }
+    ]
+}

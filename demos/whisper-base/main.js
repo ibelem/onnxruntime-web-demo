@@ -526,22 +526,21 @@ async function processAudioBuffer() {
 }
 
 const setupORT = async () => {
-  const ortversion = document.querySelector("#ortversion");
-  removeElement("onnxruntime-web");
+  const ortversion = document.querySelector('#ortversion');
+  removeElement('onnxruntime-web');
   let ortVersion = await getOrtDevVersion();
-  let ortLink = "";
-  if (ortVersion && ortVersion.length > 4) {
-    await loadScript(
-      "onnxruntime-web",
-      `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ortVersion}/dist/ort.all.min.js`
-    );
-    ortLink = `https://www.npmjs.com/package/onnxruntime-web/v/${ortVersion}`;
-    ortversion.innerHTML = `ONNX Runtime: <a href="${ortLink}">${ortVersion}</a>`;
-  } else {
-    await loadScript("onnxruntime-web", "./dist/ort.all.min.js");
-    ortversion.innerHTML = `ONNX Runtime Web: Test version`;
-  }
-};
+  // let ortLink = '';
+  // if (ortVersion && ortVersion.length > 4) {
+  //     await loadScript('onnxruntime-web', `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ortVersion}/dist/ort.all.min.js`);
+  //     ortLink = `https://www.npmjs.com/package/onnxruntime-web/v/${ortVersion}`
+  //     ortversion.innerHTML = `ONNX Runtime Web: <a href="${ortLink}">${ortVersion}</a>`;
+  // } else {
+  //     await loadScript('onnxruntime-web', './dist/ort.all.min.js');
+  //     ortversion.innerHTML = `ONNX Runtime Web: Test version`;
+  // }
+  await loadScript('onnxruntime-web', '../../assets/dist/ort.all.js');
+  ortversion.innerHTML = `ONNX Runtime Web: Test version`;
+}
 
 const main = async () => {
   device = document.getElementById('device');
@@ -580,7 +579,6 @@ const main = async () => {
     device.innerHTML = "NPU";
     badge.setAttribute('class', 'npu');
   }
-
 
   // click on Record
   record.addEventListener("click", (e) => {
