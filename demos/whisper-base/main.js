@@ -8,7 +8,7 @@ import { Whisper } from "./whisper.js";
 import { loadScript, removeElement, getQueryValue, getOrtDevVersion, webNnStatus, log, concatBuffer, concatBufferArray, logUser } from "./utils.js";
 import VADBuilder, { VADMode, VADEvent } from "./vad/embedded.js";
 import AudioMotionAnalyzer from './static/js/audioMotion-analyzer.js?min';
-
+import { lcm } from "./vad/math.js";
 
 const options = {
   mode: 10,
@@ -36,8 +36,8 @@ const options = {
 
 const kSampleRate = 16000;
 const kIntervalAudio_ms = 1000;
-const kSteps = kSampleRate * 30;
-const kDelay = 100;
+const kMaxAudioLengthInSec = 30;
+const kSteps = kSampleRate * kMaxAudioLengthInSec;
 
 // whisper class
 let whisper;
@@ -47,7 +47,7 @@ let deviceType = 'gpu';
 let dataType = "float16";
 
 // audio context
-var context = null;
+let context = null;
 let mediaRecorder;
 let stream;
 
@@ -85,7 +85,10 @@ let sourceNode = null;
 let audioChunks = []; // member {isSubChunk: boolean, data: Float32Array}
 let subAudioChunks = [];
 let chunkLength = 1 / 25; // length in sec of one audio chunk from AudioWorklet processor, recommended by vad
-let maxChunkLength = 1; // max audio length for an audio processing
+let maxChunkLength = 1; // max audio length in sec for a single audio processing
+let maxAudioLength = 10; // max audio length in sec for rectification, must not be greater than 30 sec
+let maxUnprocessedAudioLength = 0;
+let maxProcessAudioBufferLength = 0;
 let accumulateSubChunks = false;
 let silenceAudioCounter = 0;
 // check if last audio processing is completed, to avoid race condition
@@ -135,6 +138,14 @@ function updateConfig() {
     if (pair[0] == "maxChunkLength") {
       maxChunkLength = parseFloat(pair[1]);
     }
+
+    if (pair[0] == 'chunkLength') {
+      chunkLength = parseFloat(pair[1]);
+    }
+    if (pair[0] == 'maxAudioLength') {
+        maxAudioLength = Math.min(parseInt(pair[1]), kMaxAudioLengthInSec);
+    }
+
     if (pair[0] == 'accumulateSubChunks') {
       accumulateSubChunks = pair[1].toLowerCase() === 'true';
     }
@@ -161,7 +172,6 @@ function ready() {
 
 // process audio buffer
 async function process_audio(audio, starttime, idx, pos) {
-
   if (idx < audio.length) {
     // not done
     try {
@@ -176,10 +186,9 @@ async function process_audio(audio, starttime, idx, pos) {
       logUser(ret);
       // outputText.scrollTop = outputText.scrollHeight;
 
-      process_audio(audio, starttime, idx + kSteps, pos + 30);
+      await process_audio(audio, starttime, idx + kSteps, pos + kMaxAudioLengthInSec);
     } catch (e) {
       log(`Error · ${e.message}`);
-      ready();
     }
   } else {
     // done with audio buffer
@@ -196,7 +205,6 @@ async function process_audio(audio, starttime, idx, pos) {
         1
       )}s processing time for ${total.toFixed(1)}s audio`
     );
-    ready();
   }
 }
 
@@ -205,28 +213,30 @@ async function transcribe_file() {
   resultShow.setAttribute('class', '');
   if (audio_src.src == "") {
     log("Error · No audio input, please record the audio");
+    ready();
     return;
   }
 
   busy();
-  log("Starting transcribe ...");
+  log("Starting transcription ...");
   try {
     const buffer = await (await fetch(audio_src.src)).arrayBuffer();
     const audioBuffer = await context.decodeAudioData(buffer);
-    var offlineContext = new OfflineAudioContext(
+    const offlineContext = new OfflineAudioContext(
       audioBuffer.numberOfChannels,
       audioBuffer.length,
       audioBuffer.sampleRate
     );
-    var source = offlineContext.createBufferSource();
+    const source = offlineContext.createBufferSource();
     source.buffer = audioBuffer;
     source.connect(offlineContext.destination);
     source.start();
     const renderedBuffer = await offlineContext.startRendering();
     const audio = renderedBuffer.getChannelData(0);
-    process_audio(audio, performance.now(), 0, 0);
+    await process_audio(audio, performance.now(), 0, 0);
   } catch (e) {
     log(`Error · ${e.message}`);
+  } finally {
     ready();
   }
 }
@@ -292,6 +302,7 @@ async function startRecord() {
 
 // stop recording
 async function stopRecord() {
+  record.disabled = true;
   if (mediaRecorder) {
     mediaRecorder.stop();
     mediaRecorder = undefined;
@@ -340,6 +351,8 @@ async function stopSpeech() {
       await processAudioBuffer();
     }
   }
+  console.warn(`max process audio length: ${maxProcessAudioBufferLength} sec`);
+  console.warn(`max unprocessed audio length: ${maxUnprocessedAudioLength} sec`);
   // if (stream) {
   //     stream.getTracks().forEach(track => track.stop());
   // }
@@ -347,7 +360,6 @@ async function stopSpeech() {
   //     // context.close().then(() => context = null);
   //     await context.suspend();
   // }
-  ready();
 }
 
 // use AudioWorklet API to capture real-time audio
@@ -364,7 +376,7 @@ async function captureAudioStream() {
           autoGainControl: true,
           noiseSuppression: true,
           channelCount: 1,
-          latency: 0
+          latency: 0,
         },
       });
       // micStream = audioMotion.audioCtx.createMediaStreamSource(stream);
@@ -382,11 +394,14 @@ async function captureAudioStream() {
     sourceNode = new MediaStreamAudioSourceNode(context, {
       mediaStream: stream,
     });
-    await context.audioWorklet.addModule("streaming-processor.js");
+    await context.audioWorklet.addModule("streaming_processor.js");
+    // 128 is the minimum length for audio worklet processing.
+    const minBufferSize = vad.getMinBufferSize(
+      lcm(chunkLength * kSampleRate, 128)
+    );
+    console.log(`VAD minBufferSize: ${minBufferSize / kSampleRate} sec`);
     const streamProperties = {
-      numberOfChannels: 1,
-      sampleRate: context.sampleRate,
-      chunkLength: chunkLength,
+      minBufferSize: minBufferSize,
     };
     streamingNode = new AudioWorkletNode(context, "streaming-processor", {
       processorOptions: streamProperties,
@@ -429,7 +444,6 @@ async function captureAudioStream() {
     };
 
     sourceNode.connect(streamingNode).connect(context.destination);
-
   } catch (e) {
     log(`Error · Capturing audio - ${e.message}`);
   }
@@ -446,10 +460,9 @@ async function processAudioBuffer() {
     if (speechState == SpeechStates.PAUSED && audioChunks.length == 1) {
       processBuffer = concatBufferArray(subAudioChunks);
       subAudioChunks = []; // clear subAudioChunks
-    } else if (subAudioChunks.length * maxChunkLength >= 10) {
-      // if total length of subAudioChunks >= 10 sec,
-      // force to break it from subAudioChunks to reduce latency
-      // because it has to wait for more than 10 sec to do audio processing.
+    } else if (subAudioChunks.length * maxChunkLength >= maxAudioLength) {
+      // if total length of subAudioChunks >= maxAudioLength sec,
+      // force to break it from subAudioChunks to reduce latency.
       processBuffer = concatBufferArray(subAudioChunks);
       subAudioChunks = [];
     } else {
@@ -473,24 +486,24 @@ async function processAudioBuffer() {
  
   // ignore too small audio chunk, e.g. 0.16 sec
   // per testing, audios less than 0.16 sec are almost blank audio
-  if (processBuffer.length > kSampleRate * 0.16) {
+  const processBufferLength = processBuffer.length / kSampleRate;
+  if (processBufferLength > 0.16) {
     const start = performance.now();
     const ret = await whisper.run(processBuffer);
 
     const processing_time = (performance.now() - start) / 1000;
-    const total = processBuffer.length / kSampleRate;
 
     resultShow.setAttribute('class', 'show');
     latency.innerText = `${(
-      total / processing_time
+      processBufferLength / processing_time
     ).toFixed(1)} x realtime`;
 
-    logUser(
+    log(
       `${
         latency.innerText
-      }, ${total}s audio processing time: ${processing_time.toFixed(2)}s`
+      }, ${processBufferLength}s audio processing time: ${processing_time.toFixed(2)}s`
     );
-    console.log("Result: ", ret);
+
     // ignore slient, inaudible audio output, i.e. '[BLANK_AUDIO]'
     if (!blacklistTags.includes(ret)) {
       if (subAudioChunks.length > 0) {
@@ -508,6 +521,12 @@ async function processAudioBuffer() {
       logUser(ret);
       // outputText.scrollTop = outputText.scrollHeight;
     }
+  } else {
+    console.warn(`drop too small audio chunk: ${processBufferLength}`);
+  }
+
+  if (processBufferLength > maxProcessAudioBufferLength) {
+    maxProcessAudioBufferLength = processBufferLength;
   }
   lastProcessingCompleted = true;
 
@@ -517,11 +536,25 @@ async function processAudioBuffer() {
   }
 
   if (audioChunks.length > 0) {
+    let unprocessedAudioLength = 0;
+    for (let i = 0; i < audioChunks.length; ++i) {
+        unprocessedAudioLength += audioChunks[i].data.length;
+    }
+    unprocessedAudioLength /= kSampleRate;
+    console.warn(`un-processed audio chunk length: ${(unprocessedAudioLength)} sec`);
+    if (unprocessedAudioLength > maxUnprocessedAudioLength) {
+        maxUnprocessedAudioLength = unprocessedAudioLength;
+    }
+
     // recusive audioBuffer in audioChunks
     lastSpeechCompleted = false;
     await processAudioBuffer();
   } else {
     lastSpeechCompleted = true;
+  }
+
+  if (lastSpeechCompleted && speechState == SpeechStates.PAUSED) {
+    ready();
   }
 }
 
@@ -600,17 +633,19 @@ const main = async () => {
         return;
       }
       subText = "";
-      speech.setAttribute('class', 'active')
+      speech.setAttribute('class', 'active');
       await startSpeech();
     } else {
       speech.setAttribute('class', '');
+      speech.disabled = true;
       await stopSpeech();
     }
   });
 
   // drop file
   fileUpload.onchange = async function (evt) {
-    fileUpload.disabled = false;
+    labelFileUpload.setAttribute('class', 'file-upload-label disabled');
+    fileUpload.disabled = true;
     record.disabled = true;
     speech.disabled = true;
     subText = "";

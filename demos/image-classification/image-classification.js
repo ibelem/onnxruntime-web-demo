@@ -1,4 +1,4 @@
-import {imagenetClasses} from 'imagenet.js';
+import {imagenetClasses} from './imagenet.js';
 
 /**
  * Find top k imagenet classes
