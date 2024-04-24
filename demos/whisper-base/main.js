@@ -64,6 +64,7 @@ let speech;
 let progress;
 let resultShow;
 let latency;
+let audioProcessing;
 let copy;
 let audio_src;
 let outputText;
@@ -156,12 +157,13 @@ function updateConfig() {
 function busy() {
   progress.parentNode.style.display = "block";
   outputText.innerText = "";
-  latency.innerText = "";
-  resultShow.setAttribute('class', '');
+  latency.innerText = "0.0%";
+  resultShow.setAttribute('class', 'show');
 }
 
 // transcribe done
 function ready() {
+  audioProcessing.setAttribute('class', '');
   labelFileUpload.setAttribute('class', 'file-upload-label');
   fileUpload.disabled = false;
   record.disabled = false;
@@ -172,11 +174,13 @@ function ready() {
 
 // process audio buffer
 async function process_audio(audio, starttime, idx, pos) {
+  audioProcessing.setAttribute('class', 'show');
   if (idx < audio.length) {
     // not done
     try {
       // update progress bar
       progress.style.width = ((idx * 100) / audio.length).toFixed(1) + "%";
+      latency.innerText = ((idx * 100) / audio.length).toFixed(1) + "%";
 
       // run inference for 30 sec
       const xa = audio.slice(idx, idx + kSteps);
@@ -185,7 +189,7 @@ async function process_audio(audio, starttime, idx, pos) {
       outputText.innerText += ret;
       logUser(ret);
       // outputText.scrollTop = outputText.scrollHeight;
-
+      
       await process_audio(audio, starttime, idx + kSteps, pos + kMaxAudioLengthInSec);
     } catch (e) {
       log(`Error · ${e.message}`);
@@ -195,9 +199,10 @@ async function process_audio(audio, starttime, idx, pos) {
     const processing_time = (performance.now() - starttime) / 1000;
     const total = audio.length / kSampleRate;
     resultShow.setAttribute('class', 'show');
-    latency.innerText = `${(
+    latency.innerText = `100.0%, ${(
       total / processing_time
     ).toFixed(1)} x realtime`;
+    progress.style.width = "100%";
     log(
       `${
         latency.innerText
@@ -210,7 +215,7 @@ async function process_audio(audio, starttime, idx, pos) {
 
 // transcribe audio source
 async function transcribe_file() {
-  resultShow.setAttribute('class', '');
+  resultShow.setAttribute('class', 'show');
   if (audio_src.src == "") {
     log("Error · No audio input, please record the audio");
     ready();
@@ -219,6 +224,7 @@ async function transcribe_file() {
 
   busy();
   log("Starting transcription ...");
+  audioProcessing.setAttribute('class', 'show');
   try {
     const buffer = await (await fetch(audio_src.src)).arrayBuffer();
     const audioBuffer = await context.decodeAudioData(buffer);
@@ -280,7 +286,7 @@ async function startRecord() {
   mediaRecorder.ondataavailable = (e) => {
     chunks.push(e.data);
     resultShow.setAttribute('class', 'show');
-    latency.innerText = `Recorded: ${(
+    latency.innerText = `recorded: ${(
       (performance.now() - recording_start) /
       1000
     ).toFixed(1)}s`;
@@ -450,6 +456,7 @@ async function captureAudioStream() {
 }
 
 async function processAudioBuffer() {
+  audioProcessing.setAttribute('class', 'show');
   lastProcessingCompleted = false;
   let processBuffer;
   const audioChunk = audioChunks.shift();
@@ -587,6 +594,7 @@ const main = async () => {
   outputText = document.getElementById("outputText");
   resultShow = document.getElementById("result-show");
   latency = document.getElementById("latency");
+  audioProcessing = document.getElementById("audio-processing");
   copy = document.getElementById("copy");
   container = document.getElementById('container');
   
@@ -605,12 +613,15 @@ const main = async () => {
   if (deviceType.toLowerCase().indexOf("cpu") > -1 || provider.toLowerCase().indexOf("wasm") > -1) {
     device.innerHTML = "CPU";
     badge.setAttribute('class', 'cpu');
+    document.body.setAttribute('class', 'cpu');
   } else if (deviceType.toLowerCase().indexOf("gpu") > -1 || provider.toLowerCase().indexOf("webgpu") > -1) {
     device.innerHTML = "GPU";
     badge.setAttribute('class', '');
+    document.body.setAttribute('class', 'gpu');
   } else if (deviceType.toLowerCase().indexOf("npu") > -1) {
     device.innerHTML = "NPU";
     badge.setAttribute('class', 'npu');
+    document.body.setAttribute('class', 'npu');
   }
 
   // click on Record
