@@ -35,15 +35,16 @@ cd webnn-developer-preview
 openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
 npm install
 ```
-> The private and public keys are used for local https connection, WebNN and WebGPU can only run in secured contexts. This step is optional if running with http://localhost since it's considered a secure context and will behave like https.
+
+> The private and public keys are used for local https connection, WebNN can only run in secured contexts. This step is optional if running with <http://localhost> since it's considered a secure context and will behave like https.
 
 ### Run the website
 
-**WebNN Installation Guides**
+**WebNN installation guides**
 
 WebNN requires a compatible browser to run, and Windows* 11 v21H2 (DML 1.6.0) or higher.
 
-1. Download the latest [Microsoft Edge Canary](https://www.microsoft.com/edge/download/insider) or [Google Chrome Canary](https://google.com/chrome/canary) browser
+1. Download the latest [Microsoft Edge Canary](https://www.microsoft.com/edge/download/insider) browser
 2. To enable WebNN, in your browser address bar, enter `chrome://flags`, and then press `Enter`. An Experiments page opens
 3. In the Search flags box, enter `webnn`. Enables WebNN API appears
 4. In the drop-down menu, select `Enabled`
@@ -61,7 +62,7 @@ This will start a dev server and run WebNN Developer Preview demos with the WebN
 
 This project welcomes contributions and suggestions. Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.microsoft.com.
+the rights to use your contribution. For details, visit <https://cla.microsoft.com>.
 
 When you submit a pull request, a CLA-bot will automatically determine whether you need to provide
 a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions
