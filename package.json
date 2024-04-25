@@ -1,7 +1,7 @@
 {
-  "name": "onnxruntime-web-demo",
+  "name": "webnn-developer-preview",
   "version": "1.0.0",
-  "description": "Demos to show the capabilities of ONNX Runtime Web",
+  "description": "Demos to show the capabilities of WebNN Developer Preview",
   "scripts": {
     "dev": "http-server -S cert.pem -o"
   },

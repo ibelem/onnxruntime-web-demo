@@ -1089,7 +1089,7 @@ const checkWebNN = async () => {
 
   if (webnnStatus.webnn) {
     status.setAttribute("class", "green");
-    info.innerHTML = "WebNN supported · 6GB available memory required";
+    info.innerHTML = "WebNN supported · 6GB available GPU memory required";
   } else {
     if (webnnStatus.error) {
       status.setAttribute("class", "red");

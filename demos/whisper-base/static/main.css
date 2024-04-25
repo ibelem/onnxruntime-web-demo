@@ -228,10 +228,11 @@ body {
   display: none;
 }
 
-#ort-logo {
-  width: 108px;
+#webnn-logo {
+  width: 150px;
   height: 30px;
   display: inline-block;
+  margin: 0 6px 0 10px;
 }
 
 .log-output::-webkit-scrollbar, #outputText::-webkit-scrollbar {
@@ -877,22 +878,22 @@ button svg {
   text-align: right;
 }
 
-#ortversion a, #install-guides-link {
+#ortversion a {
   color: var(--main);
   text-decoration: none;
 }
 
-#ortversion a:hover, #install-guides-link:hover {
+#ortversion a:hover {
   color: var(--green);
   text-decoration: underline;
 }
 
-#webnnstatus a, #install-guides a {
+#webnnstatus a {
   color: var(--main);
   text-decoration: none;
 }
 
-#webnnstatus a:hover, #install-guides a:hover {
+#webnnstatus a:hover {
   color: var(--green);
   text-decoration: underline;
 }

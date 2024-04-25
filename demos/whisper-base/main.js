@@ -54,9 +54,6 @@ let stream;
 // some dom shortcuts
 let device = 'gpu';
 let badge;
-let installGuidesLink;
-let installGuides;
-let installClose;
 let fileUpload;
 let labelFileUpload;
 let record;
@@ -732,8 +729,6 @@ const main = async () => {
 const ui = async () => {
   let status = document.querySelector("#webnnstatus");
   let info = document.querySelector("#info");
-  installGuides = document.getElementById('install-guides');
-  installClose = document.getElementById('install-close');
   let webnnStatus = await webNnStatus();
 
   if (
@@ -753,34 +748,19 @@ const ui = async () => {
   } else {
     if (webnnStatus.webnn) {
       status.setAttribute("class", "green");
-      info.innerHTML = `WebNN supported · <a href="./?deviceType=gpu">GPU</a> · <a href="./?deviceType=npu">NPU</a> · <a href="#" id="install-guides-link">Install Guides</a>`;
+      info.innerHTML = `WebNN supported · <a href="./?deviceType=gpu">GPU</a> · <a href="./?deviceType=npu">NPU</a>`;
       await main();
     } else {
       if (webnnStatus.error) {
         status.setAttribute("class", "red");
         info.innerHTML = `WebNN not supported: ${webnnStatus.error}`;
-        log(`WebNN not supported: ${webnnStatus.error} · <a href="#" id="install-guides-link">Install Guides</a>`);
-        installGuides.setAttribute('class', '');
+        log(`WebNN not supported: ${webnnStatus.error}`);
       } else {
         status.setAttribute("class", "red");
         info.innerHTML = "WebNN not supported";
         log("WebNN not supported");
       }
     }
-  }
-
-  installGuidesLink = document.getElementById('install-guides-link');
-
-  if(installGuidesLink) {
-    installGuidesLink.addEventListener("mouseover", (e) => {
-      installGuides.setAttribute('class', '');
-    })
-  }
-
-  if(installClose) {
-    installClose.addEventListener("click", (e) => {
-      installGuides.setAttribute('class', 'none');
-    })
   }
 }
 

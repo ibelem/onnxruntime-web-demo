@@ -91,7 +91,7 @@ export const setupORT = async () => {
         ortLink = `https://www.npmjs.com/package/onnxruntime-web/v/${ortVersion}`
         ortversion.innerHTML = `ONNX Runtime Web: <a href="${ortLink}">${ortVersion}</a>`;
     } else {
-        await loadScript('onnxruntime-web', './dist/ort.all.min.js');
+        await loadScript('onnxruntime-web', '../dist/ort.all.min.js');
         ortversion.innerHTML = `ONNX Runtime Web: Test version`;
     }
 }

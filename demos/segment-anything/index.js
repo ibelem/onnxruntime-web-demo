@@ -670,17 +670,17 @@ const ui = async () => {
 
     const title = document.querySelector('#title');
     const backends = document.querySelector('#backends');
-    if (getQueryValue('provider') && getQueryValue('provider').toLowerCase().indexOf('webgpu') > -1) {
-        title.innerHTML = 'WebGPU';
-        backends.innerHTML = '<a href="index.html?provider=wasm&model=sam_b_int8" title="Wasm backend">Wasm</a> · <a href="index.html" title="WebNN backend">WebNN</a>';
-    } else if (getQueryValue('provider') && getQueryValue('provider').toLowerCase().indexOf('wasm') > -1){
-        title.innerHTML = 'Wasm';
-        samDecoderIndicator.innerHTML = 'SAM Decoder · INT8';
-        backends.innerHTML = '<a href="index.html?provider=webgpu&model=sam_b" title="WebGPU backend">WebGPU</a> · <a href="index.html" title="WebNN backend">WebNN</a>';
-    } else {
-        title.innerHTML = 'WebNN';
-        backends.innerHTML = '· <a href="index.html?provider=wasm&model=sam_b_int8" title="Wasm backend">Wasm</a> · <a href="index.html?provider=webgpu&model=sam_b" title="WebGPU backend">WebGPU</a>';
-    }
+    // if (getQueryValue('provider') && getQueryValue('provider').toLowerCase().indexOf('webgpu') > -1) {
+    //     title.innerHTML = 'WebGPU';
+    //     backends.innerHTML = '<a href="index.html?provider=wasm&model=sam_b_int8" title="Wasm backend">Wasm</a> · <a href="index.html" title="WebNN backend">WebNN</a>';
+    // } else if (getQueryValue('provider') && getQueryValue('provider').toLowerCase().indexOf('wasm') > -1){
+    //     title.innerHTML = 'Wasm';
+    //     samDecoderIndicator.innerHTML = 'SAM Decoder · INT8';
+    //     backends.innerHTML = '<a href="index.html?provider=webgpu&model=sam_b" title="WebGPU backend">WebGPU</a> · <a href="index.html" title="WebNN backend">WebNN</a>';
+    // } else {
+    //     title.innerHTML = 'WebNN';
+    //     backends.innerHTML = '· <a href="index.html?provider=wasm&model=sam_b_int8" title="Wasm backend">Wasm</a> · <a href="index.html?provider=webgpu&model=sam_b" title="WebGPU backend">WebGPU</a>';
+    // }
     await checkWebNN();
 
     const fp16 = await hasFp16();

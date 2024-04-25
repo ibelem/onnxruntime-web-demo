@@ -95,10 +95,11 @@ body {
     margin-bottom: 1rem;
 }
 
-#ort-logo {
-    width: 108px;
+#webnn-logo {
+    width: 150px;
     height: 30px;
     display: inline-block;
+    margin: 0 6px 0 10px;
 }
 
 .log-output::-webkit-scrollbar {
