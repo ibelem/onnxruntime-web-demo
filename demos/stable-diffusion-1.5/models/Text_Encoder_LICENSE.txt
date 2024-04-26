@@ -1,6 +1,0 @@
-Text Encoder Source URL
-https://huggingface.co/aluhrs13/stable-diffusion-v1-5-olive-optimized/tree/main/text_encoder
-
-License: creativeml-openrail-m 
-https://huggingface.co/spaces/CompVis/stable-diffusion-license
-

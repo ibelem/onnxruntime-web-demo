@@ -101,7 +101,7 @@ header {
 }
 
 header a {
-    display: inline-flex;
+  display: inline-flex;
 }
 
 header svg {
@@ -297,7 +297,7 @@ a:focus {
 }
 
 #install-guides ol li {
-    padding: 0 10px;
+  padding: 0 10px;
 }
 
 code {
@@ -444,17 +444,17 @@ footer ul li a:hover {
     width: 68px;
     height: 40px;
   }
-  
+
   #directml-logo {
     height: 40px;
     width: 70px;
   }
-  
+
   #ort-logo {
     width: 74px;
     height: 40px;
   }
-  
+
   #webnn-logo {
     margin-left: 0px;
     width: 128px;
@@ -496,4 +496,21 @@ footer ul li a:hover {
   .backend {
     justify-self: left;
   }
+}
+
+#migration {
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+  width: 100%;
+  text-align: center;
+  background-color: var(--pink);
+  color: white;
+  padding: 10px;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+#migration a {
+  color: yellow;
 }
